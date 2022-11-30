@@ -1,0 +1,16 @@
+{
+  "name": "dep-checker",
+  "version": "1.0.0",
+  "description": "Check NPM dependencies to update, create a Jira ticket",
+  "main": "index.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "jira-client": "^8.2.2",
+    "semver": "^7.3.8"
+  }
+}

@@ -1,0 +1,31 @@
+name: Dependencies Checker
+
+on: workflow_dispatch
+
+env:
+  JIRA_USER: search-service-user@risecodes.com
+  JIRA_TOKEN: ${{ secrets.jira_service_user_token }}
+  JIRA_PROJECT: RIS
+  JIRA_ISSUE_TYPE: Story
+
+jobs:
+  Dependencies-Checker:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        path: main
+    - name: Checkout dep-checker
+      uses: actions/checkout@v3
+      with:
+        repository: online-applications/dep-checker
+        token: ${{ secrets.access_token_github }}
+        path: dep-checker
+    - uses: actions/setup-node@v3
+    - name: Install deps
+      run: npm i
+      working-directory: ./dep-checker
+    - name: Check updates
+      run: node ../dep-checker
+      working-directory: ./main
