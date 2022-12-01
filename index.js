@@ -30,16 +30,16 @@ const { findIssue, createIssue, updateIssue } = require('./src/jira');
     console.log(`\t${issue.fields?.description?.replace(/\n/g, '\n\t')}\n`);
     console.log('End ticket description');
     if (issue.fields.description != description) {
-      // console.log('Updating description ...');
-      // await updateIssue(issue.id, description);
-      // console.log(`Ticket ${issue.key} updated successfully`)
+      console.log('Updating description ...');
+      await updateIssue(issue.id, description);
+      console.log(`Ticket ${issue.key} updated successfully`)
     } else {
       console.log(`Leaving Jira ticket ${issue.key} unchanged`);
     }
   } else {
-    // console.log('No existing Jira ticket, creating a new one ...')
-    // const result = await createIssue(description);
-    // console.log(`Ticket ${result.key} created successfully`);
+    console.log('No existing Jira ticket, creating a new one ...')
+    const result = await createIssue(description);
+    console.log(`Ticket ${result.key} created successfully`);
   }
 
 })();
