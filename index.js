@@ -25,10 +25,9 @@ const { findIssue, createIssue, updateIssue } = require('./src/jira');
   console.log('Searching for existing Jira ticket ...');
   const issue = await findIssue();
   if (issue) {
-    console.log(`Found Jira ticket ${issue.key}!`);
+    console.log(`Found Jira ticket: ${issue.key}`);
     console.log('Ticket description:\n');
     console.log(`\t${issue.fields?.description?.replace(/\n/g, '\n\t')}\n`);
-    console.log('End ticket description');
     if (issue.fields.description != description) {
       console.log('Updating description ...');
       await updateIssue(issue.id, description);
