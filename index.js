@@ -14,9 +14,12 @@ const { findIssue, createIssue, updateIssue } = require('./src/jira');
   console.log(`Found updates: ${JSON.stringify(updates, null, 2)}`);
 
   // Constants
-  const description = updates.map(({ name, wanted, latest }) => {
-    return `Bump ${name} from ${wanted} to ${latest}`;
-  }).join('\n');
+  const description = updates.map(({ package, deps }) => {
+    const list = deps.map(({ name, wanted, latest }) => {
+      return `- Bump ${name} from ${wanted} to ${latest}`;
+    }).join('\n');
+    return `*${package}*\n${list}`;
+  }).join('\n\n');
 
   // Jira
   console.log('Searching for existing Jira ticket ...');
@@ -34,7 +37,7 @@ const { findIssue, createIssue, updateIssue } = require('./src/jira');
       console.log(`Leaving Jira ticket ${issue.key} unchanged`);
     }
   } else {
-    console.log('No existing Jira ticket, creating a new one ...')
+    // console.log('No existing Jira ticket, creating a new one ...')
     // const result = await createIssue(description);
     // console.log(`Ticket ${result.key} created successfully`);
   }

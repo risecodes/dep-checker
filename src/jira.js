@@ -8,11 +8,11 @@ const {
 } = require('./constants');
 
 if (!GITHUB_REPOSITORY) {
-  throw new Error('Empty repository name');
+  throw new Error('GITHUB_REPOSITORY is empty');
 }
 
 if (!JIRA_TOKEN) {
-  throw new Error('Empty jira token');
+  throw new Error('JIRA_TOKEN is empty');
 }
 
 const TICKET_SUMMARY = `Deps - ${GITHUB_REPOSITORY}`;

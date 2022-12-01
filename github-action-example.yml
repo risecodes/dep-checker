@@ -1,12 +1,11 @@
 name: Dependencies Checker
 
-on: workflow_dispatch
+on:
+  schedule:
+  - cron: '0 0 * * 0' # Every Sunday at 00:00
 
 env:
-  JIRA_USER: search-service-user@risecodes.com
   JIRA_TOKEN: ${{ secrets.jira_service_user_token }}
-  JIRA_PROJECT: RIS
-  JIRA_ISSUE_TYPE: Story
 
 jobs:
   Dependencies-Checker:
