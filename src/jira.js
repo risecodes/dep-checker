@@ -43,8 +43,8 @@ const createIssue = (description) => {
     fields: {
       summary: TICKET_SUMMARY,
       description,
-      project: { key: PROJECT },
-      issuetype: { name: ISSUE_TYPE }
+      project: { key: JIRA_PROJECT },
+      issuetype: { name: JIRA_ISSUE_TYPE }
     }
   });
 }
