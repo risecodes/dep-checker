@@ -27,7 +27,7 @@ const jira = new JiraApi({
 });
 
 const findIssue = async () => {
-  // Add a star (*) to the summary condition, due to a bug in Jira API
+  // Add a star (*) to the `summary` condition, due to a bug in Jira API
   // See https://community.atlassian.com/t5/Jira-Software-questions/JQL-Query-for-summary/qaq-p/1431215
   const jql = `
     reporter = "${JIRA_USER}"

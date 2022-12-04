@@ -40,11 +40,7 @@ const getUpdates = (cwd) => {
 
         const majorUpdates = updatesList.filter(({ wanted, latest }) => {
           return semver.diff(wanted, latest) === MAJOR;
-        }).map(({ wanted, latest, name }) => ({
-          wanted: semver.major(wanted),
-          latest: semver.major(latest),
-          name
-        }));
+        }).map(({ wanted, latest, name }) => ({ wanted, latest, name }));
 
         resolve({
           package: path.join(cwd, PACKAGE_JSON).slice(PREFIX_LENGTH),
