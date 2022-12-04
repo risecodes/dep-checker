@@ -31,12 +31,12 @@ import { findIssue, createIssue, updateIssue } from './jira';
     if (issue.fields.description != description) {
       console.log('Updating description ...');
       await updateIssue(issue.id, description);
-      console.log(`Ticket ${issue.key} updated successfully`)
+      console.log(`Ticket ${issue.key} updated successfully`);
     } else {
       console.log(`Leaving Jira ticket ${issue.key} unchanged`);
     }
   } else {
-    console.log('No existing Jira ticket, creating a new one ...')
+    console.log('No existing Jira ticket, creating a new one ...');
     const result = await createIssue(description);
     console.log(`Ticket ${result.key} created successfully`);
   }

@@ -38,7 +38,7 @@ export const findIssue = async () => {
   `;
   const result = await jira.searchJira(jql, { fields: ['description'] });
   return result?.issues?.[0];
-}
+};
 
 export const createIssue = (description: string) => {
   return jira.addNewIssue({
@@ -49,8 +49,8 @@ export const createIssue = (description: string) => {
       issuetype: { name: JIRA_ISSUE_TYPE }
     }
   });
-}
+};
 
 export const updateIssue = (issueId: string, description: string) => {
   return jira.updateIssue(issueId, { description });
-}
+};

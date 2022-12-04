@@ -30,7 +30,7 @@ const getPackagesLocation = (dirPath: string): string[] => {
 
   return packagesLocation.flat().sort();
 
-}
+};
 
 const getUpdates = (cwd: string): Promise<IUpdate> => {
   return new Promise((resolve, reject) => {
@@ -52,8 +52,8 @@ const getUpdates = (cwd: string): Promise<IUpdate> => {
         reject(err);
       }
     });
-  })
-}
+  });
+};
 
 const getAllUpdates = async () => {
   const locations = getPackagesLocation(process.cwd());
@@ -67,6 +67,6 @@ const getAllUpdates = async () => {
     }
   }
   return updates;
-}
+};
 
 export default getAllUpdates;
