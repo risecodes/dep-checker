@@ -59,9 +59,14 @@ const getAllUpdates = async () => {
   const locations = getPackagesLocation(process.cwd());
   const updates: IUpdate[] = [];
   for (const location of locations) {
-    updates.push(await getUpdates(location));
+    console.log(`Entering ${location} ...`);
+    const update = await getUpdates(location);
+    if (update.deps.length) {
+      console.log(`Found updates: ${JSON.stringify(update, null, 2)}`);
+      updates.push(update);
+    }
   }
-  return updates.filter(({ deps }) => deps.length);
+  return updates;
 }
 
 export default getAllUpdates;
