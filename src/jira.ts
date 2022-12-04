@@ -1,11 +1,11 @@
-const JiraApi = require('jira-client');
-const {
+import JiraApi from 'jira-client';
+import {
   JIRA_USER,
   JIRA_PROJECT,
   JIRA_ISSUE_TYPE,
   JIRA_TOKEN,
   GITHUB_REPOSITORY,
-} = require('./constants');
+} from './constants';
 
 if (!GITHUB_REPOSITORY) {
   throw new Error('GITHUB_REPOSITORY is empty');
@@ -26,7 +26,7 @@ const jira = new JiraApi({
   strictSSL: true
 });
 
-const findIssue = async () => {
+export const findIssue = async () => {
   // Add a star (*) to the `summary` condition, due to a bug in Jira API
   // See https://community.atlassian.com/t5/Jira-Software-questions/JQL-Query-for-summary/qaq-p/1431215
   const jql = `
@@ -40,7 +40,7 @@ const findIssue = async () => {
   return result?.issues?.[0];
 }
 
-const createIssue = (description) => {
+export const createIssue = (description: string) => {
   return jira.addNewIssue({
     fields: {
       summary: TICKET_SUMMARY,
@@ -51,12 +51,6 @@ const createIssue = (description) => {
   });
 }
 
-const updateIssue = (issueId, description) => {
+export const updateIssue = (issueId: string, description: string) => {
   return jira.updateIssue(issueId, { description });
 }
-
-module.exports = {
-  findIssue,
-  createIssue,
-  updateIssue
-};

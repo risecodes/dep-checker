@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "Check NPM dependencies to update, create a Jira ticket",
   "main": "index.js",
-  "devDependencies": {},
+  "devDependencies": {
+    "@types/jira-client": "^7.1.5"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

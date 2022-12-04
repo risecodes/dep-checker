@@ -1,5 +1,5 @@
-const getUpdates = require('./src/npm');
-const { findIssue, createIssue, updateIssue } = require('./src/jira');
+import getUpdates from './npm';
+import { findIssue, createIssue, updateIssue } from './jira';
 
 
 (async () => {
@@ -14,11 +14,11 @@ const { findIssue, createIssue, updateIssue } = require('./src/jira');
   console.log(`Found updates: ${JSON.stringify(updates, null, 2)}`);
 
   // Constants
-  const description = updates.map(({ package, deps }) => {
+  const description = updates.map(({ packageJson, deps }) => {
     const list = deps.map(({ name, wanted, latest }) => {
       return `- Bump ${name} from ${wanted} to ${latest}`;
     }).join('\n');
-    return `*${package}*\n${list}`;
+    return `*${packageJson}*\n${list}`;
   }).join('\n\n');
 
   // Jira
