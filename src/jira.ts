@@ -52,5 +52,5 @@ export const createIssue = (description: string) => {
 };
 
 export const updateIssue = (issueId: string, description: string) => {
-  return jira.updateIssue(issueId, { description });
+  return jira.updateIssue(issueId, { fields: { description } });
 };
