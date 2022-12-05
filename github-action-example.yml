@@ -7,24 +7,19 @@ on:
 env:
   JIRA_TOKEN: ${{ secrets.jira_service_user_token }}
 
+# Inspired by
+# https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-using-an-action-inside-a-different-private-repository-than-the-workflow
 jobs:
-  Dependencies-Checker:
+  Deps-Checker:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-      with:
-        path: main
     - name: Checkout dep-checker
       uses: actions/checkout@v3
       with:
         repository: online-applications/dep-checker
         token: ${{ secrets.access_token_github }}
-        path: dep-checker
-    - uses: actions/setup-node@v3
-    - name: Install deps
-      run: npm i
-      working-directory: ./dep-checker
+        path: ./.github/actions/dep-checker
     - name: Check updates
-      run: node ../dep-checker
-      working-directory: ./main
+      uses: ./.github/actions/dep-checker
