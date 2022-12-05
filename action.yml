@@ -1,0 +1,5 @@
+name: 'Dep Checker'
+description: 'Check NPM dependencies to update, create a Jira ticket'
+runs:
+  using: 'node16'
+  main: 'dist/index.js'

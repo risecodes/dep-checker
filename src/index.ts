@@ -1,8 +1,10 @@
+import * as core from '@actions/core';
+import * as github from '@actions/github';
 import getUpdates from './npm';
 import { findIssue, createIssue, updateIssue } from './jira';
 
 
-(async () => {
+const main = async () => {
 
   // Check updates
   console.log('Checking NPM dependencies ...');
@@ -41,4 +43,9 @@ import { findIssue, createIssue, updateIssue } from './jira';
     console.log(`Ticket ${result.key} created successfully`);
   }
 
-})();
+};
+
+main()
+  .catch(error => {
+    core.setFailed(error.message);
+  });
