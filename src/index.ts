@@ -1,6 +1,15 @@
 import * as core from '@actions/core';
 import getUpdates from './npm';
 import { findIssue, createIssue, updateIssue } from './jira';
+import { GITHUB_REF_NAME, GITHUB_REPOSITORY } from './constants';
+
+if (!GITHUB_REPOSITORY) {
+  throw new Error('GITHUB_REPOSITORY is empty');
+}
+
+if (!GITHUB_REF_NAME) {
+  throw new Error('GITHUB_REF_NAME is empty');
+}
 
 
 const main = async () => {
@@ -16,10 +25,11 @@ const main = async () => {
 
   // Constants
   const description = updates.map(({ packageJson, deps }) => {
+    const link = `https://github.com/${GITHUB_REPOSITORY}/blob/${GITHUB_REF_NAME}/package.json`;
     const list = deps.map(({ name, wanted, latest }) => {
-      return `- Bump ${name} from ${wanted} to ${latest}`;
+      return `- Bump {{${name}}} from *${wanted}* to *${latest}*`;
     }).join('\n');
-    return `*${packageJson}*\n${list}`;
+    return `{{${packageJson}}} ([link|${link}])\n${list}`;
   }).join('\n\n');
 
   // Jira
