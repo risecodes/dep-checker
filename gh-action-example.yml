@@ -11,7 +11,7 @@ env:
   # JIRA_USER: search-service-user@risecodes.com
   # JIRA_PROJECT: RIS
   # JIRA_ISSUE_TYPE: Story
-  # IGNORE_FOLDERS: node_modules
+  # DEP_CHECKER_IGNORE:
 
 # Inspired by
 # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-using-an-action-inside-a-different-private-repository-than-the-workflow

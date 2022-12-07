@@ -24,7 +24,7 @@ And that's it!
 | `JIRA_TOKEN` | User token | - |
 | `JIRA_PROJECT` | Project to create tickets | `RIS` |
 | `JIRA_ISSUE_TYPE` | Ticket type | `Story` |
-| `IGNORE_FOLDERS` | Folders to be ignored | `node_modules` |
+| `DEP_CHECKER_IGNORE` | Folders to be ignored | `null` |
 | `VERSION` | `dep-checker` version | `main` |
 
 ## Development

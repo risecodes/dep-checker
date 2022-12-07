@@ -1,35 +1,24 @@
-import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { exec } from 'child_process';
 import { diff } from 'semver';
-import { IGNORE_FOLDERS } from './constants';
+import glob from 'glob';
+import { DEP_CHECKER_IGNORE } from './constants';
 import { IOutdated, IUpdate } from './types';
 
 const CMD = 'npm outdated --json';
 const MAJOR = 'major';
 const PACKAGE_JSON = 'package.json';
-const PREFIX_LENGTH = process.cwd().length + 1;
+
+const IGNORE = [
+  ...DEP_CHECKER_IGNORE?.split(/\s+/) || [],
+  '**/node_modules/**',
+  '.github/actions/dep-checker'
+];
 
 
-const getPackagesLocation = (dirPath: string): string[] => {
-  const files = fs.readdirSync(dirPath).map(file => {
-    return path.join(dirPath, file);
-  });
-
-  const packagesLocation: string[][] = [];
-
-  for (const file of files) {
-    if (fs.statSync(file).isDirectory()) {
-      if (!IGNORE_FOLDERS.includes(file.slice(PREFIX_LENGTH))) {
-        packagesLocation.push(getPackagesLocation(file));
-      }
-    } else if (path.basename(file) === PACKAGE_JSON) {
-      packagesLocation.push([path.dirname(file)]);
-    }
-  }
-
-  return packagesLocation.flat().sort();
-
+const getPackagesLocation = (): string[] => {
+  const packagesLocations = glob.sync('**/package.json', { ignore: IGNORE });
+  return packagesLocations.map(pl => path.dirname(pl));
 };
 
 const getUpdates = (cwd: string): Promise<IUpdate> => {
@@ -44,7 +33,7 @@ const getUpdates = (cwd: string): Promise<IUpdate> => {
         }).map(({ wanted, latest, name }) => ({ wanted, latest, name }));
 
         resolve({
-          packageJson: path.join(cwd, PACKAGE_JSON).slice(PREFIX_LENGTH),
+          packageJson: path.join(cwd, PACKAGE_JSON),
           deps: majorUpdates
         });
       } catch (err) {
@@ -56,7 +45,7 @@ const getUpdates = (cwd: string): Promise<IUpdate> => {
 };
 
 const getAllUpdates = async () => {
-  const locations = getPackagesLocation(process.cwd());
+  const locations = getPackagesLocation();
   const updates: IUpdate[] = [];
   for (const location of locations) {
     console.log(`Entering ${location} ...`);
