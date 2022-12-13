@@ -6,11 +6,12 @@ on:
 
 env:
   JIRA_TOKEN: ${{ secrets.jira_service_user_token }}
-  VERSION: v1.0.0
+  DEP_CHECKER_VERSION: v1.0.0
   # Uncomment to change default values
   # JIRA_USER: search-service-user@risecodes.com
   # JIRA_PROJECT: RIS
   # JIRA_ISSUE_TYPE: Story
+  # DEP_CHECKER_LEVEL: major
   # DEP_CHECKER_IGNORE:
 
 # Inspired by
@@ -25,7 +26,7 @@ jobs:
       uses: actions/checkout@v3
       with:
         repository: online-applications/dep-checker
-        ref: ${{ env.VERSION }}
+        ref: ${{ env.DEP_CHECKER_VERSION }}
         token: ${{ secrets.access_token_github }}
         path: ./.github/actions/dep-checker
     - name: Check updates

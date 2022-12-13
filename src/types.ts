@@ -1,3 +1,11 @@
+export enum ELevels {
+  patch,
+  minor,
+  major,
+}
+
+export type TLevels = keyof typeof ELevels
+
 export interface IUpdate {
   packageJson: string,
   deps: {
