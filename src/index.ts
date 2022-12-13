@@ -7,10 +7,6 @@ if (!GITHUB_REPOSITORY) {
   throw new Error('GITHUB_REPOSITORY is empty');
 }
 
-if (!GITHUB_REF_NAME) {
-  throw new Error('GITHUB_REF_NAME is empty');
-}
-
 
 const main = async () => {
 

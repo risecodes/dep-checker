@@ -20,6 +20,7 @@ And that's it!
 | Name | Description | Default |
 | --- | --- | --- |
 | `GITHUB_REPOSITORY` | Internal GH Action env | `${owner}/${repository}` |
+| `GITHUB_REF_NAME` | Branch name for to link in issue | `staging` |
 | `JIRA_USER` | User email used to login | `search-service-user@risecodes.com` |
 | `JIRA_TOKEN` | User token | - |
 | `JIRA_PROJECT` | Project to create tickets | `RIS` |
