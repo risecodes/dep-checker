@@ -2,6 +2,7 @@ import * as core from '@actions/core';
 import getUpdates from './npm';
 import { findIssue, createIssue, updateIssue } from './jira';
 import { GITHUB_REF_NAME, GITHUB_REPOSITORY } from './constants';
+import { TSemverLevel } from './types';
 
 if (!GITHUB_REPOSITORY) {
   throw new Error('GITHUB_REPOSITORY is empty');
@@ -10,9 +11,12 @@ if (!GITHUB_REPOSITORY) {
 
 const main = async () => {
 
+
+  const semverLevel = core.getInput('level') as TSemverLevel;
+
   // Check updates
   console.log('Checking NPM dependencies ...');
-  const updates = await getUpdates();
+  const updates = await getUpdates(semverLevel);
   if (!updates.length) {
     console.log('Everything up to date!');
     return;

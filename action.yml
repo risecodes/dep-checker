@@ -1,5 +1,9 @@
 name: 'Dep Checker'
 description: 'Check NPM dependencies to update, create a Jira ticket'
+inputs:
+  level:
+    description: SemVer level to check for (major|minor|patch)
+    default: major
 runs:
   using: 'node16'
   main: 'dist/index.js'

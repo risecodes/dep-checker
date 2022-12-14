@@ -1,10 +1,10 @@
-export enum ELevels {
+export enum SemverLevels {
   patch,
   minor,
   major,
 }
 
-export type TLevels = keyof typeof ELevels
+export type TSemverLevel = keyof typeof SemverLevels
 
 export interface IUpdate {
   packageJson: string,

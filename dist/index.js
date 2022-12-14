@@ -61825,7 +61825,7 @@ try {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.DEP_CHECKER_IGNORE = exports.JIRA_ISSUE_TYPE = exports.JIRA_PROJECT = exports.JIRA_TOKEN = exports.JIRA_USER = exports.GITHUB_REF_NAME = exports.GITHUB_REPOSITORY = void 0;
 exports.GITHUB_REPOSITORY = process.env.GITHUB_REPOSITORY;
-exports.GITHUB_REF_NAME = process.env.GITHUB_REF_NAME;
+exports.GITHUB_REF_NAME = process.env.GITHUB_REF_NAM || 'staging';
 exports.JIRA_USER = process.env.JIRA_USER || 'search-service-user@risecodes.com';
 exports.JIRA_TOKEN = process.env.JIRA_TOKEN;
 exports.JIRA_PROJECT = process.env.JIRA_PROJECT || 'RIS';
@@ -61874,14 +61874,12 @@ const constants_1 = __nccwpck_require__(9042);
 if (!constants_1.GITHUB_REPOSITORY) {
     throw new Error('GITHUB_REPOSITORY is empty');
 }
-if (!constants_1.GITHUB_REF_NAME) {
-    throw new Error('GITHUB_REF_NAME is empty');
-}
 const main = async () => {
     var _a, _b;
+    const level = core.getInput('level');
     // Check updates
     console.log('Checking NPM dependencies ...');
-    const updates = await (0, npm_1.default)();
+    const updates = await (0, npm_1.default)(level);
     if (!updates.length) {
         console.log('Everything up to date!');
         return;
@@ -62021,8 +62019,8 @@ const child_process_1 = __nccwpck_require__(2081);
 const semver_1 = __nccwpck_require__(1383);
 const glob_1 = __importDefault(__nccwpck_require__(1957));
 const constants_1 = __nccwpck_require__(9042);
+const types_1 = __nccwpck_require__(5077);
 const CMD = 'npm outdated --json';
-const MAJOR = 'major';
 const PACKAGE_JSON = 'package.json';
 const IGNORE = [
     ...(constants_1.DEP_CHECKER_IGNORE === null || constants_1.DEP_CHECKER_IGNORE === void 0 ? void 0 : constants_1.DEP_CHECKER_IGNORE.split(/\s+/)) || [],
@@ -62033,18 +62031,19 @@ const getPackagesLocation = () => {
     const packagesLocations = glob_1.default.sync('**/package.json', { ignore: IGNORE });
     return packagesLocations.map(pl => path.dirname(pl));
 };
-const getUpdates = (cwd) => {
+const filterLevel = (state, threshold) => {
+    const level = (0, semver_1.diff)(state.wanted, state.latest);
+    return level && level in types_1.ELevels && types_1.ELevels[level] >= types_1.ELevels[threshold];
+};
+const getUpdates = (cwd, level) => {
     return new Promise((resolve, reject) => {
-        (0, child_process_1.exec)(CMD, { cwd }, (err, stdout, stderr) => {
+        (0, child_process_1.exec)(CMD, { cwd }, (_, stdout, stderr) => {
             try {
                 const updatesMap = JSON.parse(stdout);
                 const updatesList = Object.entries(updatesMap).map(([name, state]) => ({ name, ...state }));
-                const majorUpdates = updatesList.filter(({ wanted, latest }) => {
-                    return (0, semver_1.diff)(wanted, latest) === MAJOR;
-                }).map(({ wanted, latest, name }) => ({ wanted, latest, name }));
                 resolve({
                     packageJson: path.join(cwd, PACKAGE_JSON),
-                    deps: majorUpdates
+                    deps: updatesList.filter(state => filterLevel(state, level))
                 });
             }
             catch (err) {
@@ -62054,12 +62053,12 @@ const getUpdates = (cwd) => {
         });
     });
 };
-const getAllUpdates = async () => {
+const getAllUpdates = async (level) => {
     const locations = getPackagesLocation();
     const updates = [];
     for (const location of locations) {
         console.log(`Entering ${location} ...`);
-        const update = await getUpdates(location);
+        const update = await getUpdates(location, level);
         if (update.deps.length) {
             console.log(`Found updates: ${JSON.stringify(update, null, 2)}`);
             updates.push(update);
@@ -62068,6 +62067,23 @@ const getAllUpdates = async () => {
     return updates;
 };
 exports["default"] = getAllUpdates;
+
+
+/***/ }),
+
+/***/ 5077:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ELevels = void 0;
+var ELevels;
+(function (ELevels) {
+    ELevels[ELevels["patch"] = 0] = "patch";
+    ELevels[ELevels["minor"] = 1] = "minor";
+    ELevels[ELevels["major"] = 2] = "major";
+})(ELevels = exports.ELevels || (exports.ELevels = {}));
 
 
 /***/ }),

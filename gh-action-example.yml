@@ -31,3 +31,5 @@ jobs:
         path: ./.github/actions/dep-checker
     - name: Check updates
       uses: ./.github/actions/dep-checker
+      # with:
+      #   level: major
