@@ -1,9 +1,9 @@
 import * as path from 'node:path';
 import { exec } from 'child_process';
-import { diff } from 'semver';
 import glob from 'glob';
 import { DEP_CHECKER_IGNORE } from './constants';
-import { IOutdated, IUpdate, SemverLevels, TSemverLevel } from './types';
+import { INPMModule, IUpdate, IUpdates } from './types';
+import { filterSemverLevel } from './utils';
 
 const CMD = 'npm outdated --json';
 const PACKAGE_JSON = 'package.json';
@@ -14,27 +14,24 @@ const IGNORE = [
   '.github/actions/dep-checker'
 ];
 
-
-const getPackagesLocation = (): string[] => {
-  const packagesLocations = glob.sync('**/package.json', { ignore: IGNORE });
-  return packagesLocations.map(pl => path.dirname(pl));
+const parseModules = (stdout: string): IUpdate[] => {
+  const modulesObject = JSON.parse(stdout) as INPMModule[];
+  return Object.entries(modulesObject).map(([name, state]) => ({
+    name,
+    wanted: state.wanted,
+    latest: state.latest
+  }));
 };
 
-const filterSemverLevel = (state: IOutdated, semverLevel: TSemverLevel) => {
-  const val = diff(state.wanted, state.latest) as TSemverLevel;
-  return val && val in SemverLevels && SemverLevels[val] >= SemverLevels[semverLevel];
-}
-
-const getUpdates = (cwd: string, semverLevel: TSemverLevel): Promise<IUpdate> => {
+const getUpdates = (cwd: string): Promise<IUpdates> => {
   return new Promise((resolve, reject) => {
     exec(CMD, { cwd }, (_, stdout, stderr) => {
       try {
-        const updatesMap = JSON.parse(stdout) as IOutdated[];
-        const updatesList = Object.entries(updatesMap).map(([name, state]) => ({ name, ...state }));
+        const updatesList = parseModules(stdout);
 
         resolve({
-          packageJson: path.join(cwd, PACKAGE_JSON),
-          deps: updatesList.filter(state => filterSemverLevel(state, semverLevel))
+          configFile: path.join(cwd, PACKAGE_JSON),
+          modules: updatesList.filter(state => filterSemverLevel(state))
         });
       } catch (err) {
         console.log('Executing `npm outdated` failed:\n', stderr);
@@ -44,13 +41,13 @@ const getUpdates = (cwd: string, semverLevel: TSemverLevel): Promise<IUpdate> =>
   });
 };
 
-const getAllUpdates = async (semverLevel: TSemverLevel) => {
-  const locations = getPackagesLocation();
-  const updates: IUpdate[] = [];
+const getAllUpdates = async () => {
+  const locations = glob.sync(`**/${PACKAGE_JSON}`, { ignore: IGNORE }).map(pl => path.dirname(pl));
+  const updates: IUpdates[] = [];
   for (const location of locations) {
     console.log(`Entering ${location} ...`);
-    const update = await getUpdates(location, semverLevel);
-    if (update.deps.length) {
+    const update = await getUpdates(location);
+    if (update.modules.length) {
       console.log(`Found updates: ${JSON.stringify(update, null, 2)}`);
       updates.push(update);
     }

@@ -2,7 +2,6 @@ import * as core from '@actions/core';
 import getUpdates from './npm';
 import { findIssue, createIssue, updateIssue } from './jira';
 import { GITHUB_REF_NAME, GITHUB_REPOSITORY } from './constants';
-import { TSemverLevel } from './types';
 
 if (!GITHUB_REPOSITORY) {
   throw new Error('GITHUB_REPOSITORY is empty');
@@ -11,12 +10,9 @@ if (!GITHUB_REPOSITORY) {
 
 const main = async () => {
 
-
-  const semverLevel = core.getInput('level') as TSemverLevel;
-
   // Check updates
   console.log('Checking NPM dependencies ...');
-  const updates = await getUpdates(semverLevel);
+  const updates = await getUpdates();
   if (!updates.length) {
     console.log('Everything up to date!');
     return;
@@ -24,12 +20,12 @@ const main = async () => {
   console.log(`Found updates: ${JSON.stringify(updates, null, 2)}`);
 
   // Constants
-  const description = updates.map(({ packageJson, deps }) => {
+  const description = updates.map(({ configFile, modules }) => {
     const link = `https://github.com/${GITHUB_REPOSITORY}/blob/${GITHUB_REF_NAME}/package.json`;
-    const list = deps.map(({ name, wanted, latest }) => {
+    const list = modules.map(({ name, wanted, latest }) => {
       return `- Bump {{${name}}} from *${wanted}* to *${latest}*`;
     }).join('\n');
-    return `{{${packageJson}}} ([link|${link}])\n${list}`;
+    return `{{${configFile}}} ([link|${link}])\n${list}`;
   }).join('\n\n');
 
   // Jira
