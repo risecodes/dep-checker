@@ -44,4 +44,7 @@ export interface IGoModule {
     GoMod: string;
     GoVersion: string;
   };
+  Error?: {
+    Err: string;
+  }
 }

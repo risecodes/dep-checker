@@ -1,5 +1,5 @@
 name: 'Dep Checker'
-description: 'Check NPM dependencies to update, create a Jira ticket'
+description: 'Check dependencies to update, create a Jira ticket'
 inputs:
   level:
     description: SemVer level to check for (major|minor|patch)

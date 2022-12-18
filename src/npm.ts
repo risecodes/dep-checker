@@ -1,6 +1,7 @@
 import * as path from 'node:path';
 import { exec } from 'child_process';
 import glob from 'glob';
+import * as core from "@actions/core";
 import { DEP_CHECKER_IGNORE } from './constants';
 import { INPMModule, IUpdate, IUpdates } from './types';
 import { filterSemverLevel } from './utils';
@@ -34,7 +35,8 @@ const getUpdates = (cwd: string): Promise<IUpdates> => {
           modules: updatesList.filter(state => filterSemverLevel(state))
         });
       } catch (err) {
-        console.log('Executing `npm outdated` failed:\n', stderr);
+        core.error(`Command \`${CMD}\` failed:`);
+        core.error(stderr);
         reject(err);
       }
     });
@@ -42,13 +44,13 @@ const getUpdates = (cwd: string): Promise<IUpdates> => {
 };
 
 const getAllUpdates = async () => {
-  const locations = glob.sync(`**/${PACKAGE_JSON}`, { ignore: IGNORE }).map(pl => path.dirname(pl));
+  const configs = glob.sync(`**/${PACKAGE_JSON}`, { ignore: IGNORE });
   const updates: IUpdates[] = [];
-  for (const location of locations) {
-    console.log(`Entering ${location} ...`);
+  for (const configFile of configs) {
+    const location = path.dirname(configFile);
+    console.log(`Scanning ${configFile} ...`);
     const update = await getUpdates(location);
     if (update.modules.length) {
-      console.log(`Found updates: ${JSON.stringify(update, null, 2)}`);
       updates.push(update);
     }
   }

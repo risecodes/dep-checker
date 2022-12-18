@@ -1,5 +1,6 @@
 import * as core from '@actions/core';
-import getUpdates from './npm';
+import getNPMUpdates from './npm';
+import getGolangUpdates from './go';
 import { findIssue, createIssue, updateIssue } from './jira';
 import { GITHUB_REF_NAME, GITHUB_REPOSITORY } from './constants';
 
@@ -7,11 +8,19 @@ if (!GITHUB_REPOSITORY) {
   throw new Error('GITHUB_REPOSITORY is empty');
 }
 
+const getUpdates = async () => {
+  const updates = await Promise.all([
+    getNPMUpdates(),
+    getGolangUpdates()
+  ]);
+  return updates.filter(u => u.length).flat();
+}
+
 
 const main = async () => {
 
   // Check updates
-  console.log('Checking NPM dependencies ...');
+  console.log('Checking dependencies ...');
   const updates = await getUpdates();
   if (!updates.length) {
     console.log('Everything up to date!');
