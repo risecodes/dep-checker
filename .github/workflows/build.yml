@@ -1,0 +1,30 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - dev
+      - main
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    - name: Calculate version
+      id: version
+      uses: online-applications/version-action@v2.1.0
+      env:
+        COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+        ENVIRONMENT: ${{ github.ref_name != 'main' && 'staging' || 'production' }}
+    - name: Build
+      run: npm i && npm run build
+    - uses: stefanzweifel/git-auto-commit-action@v4
+      with:
+        commit_message: Bumping ${{ steps.version.outputs.repo_tag }}
+        file_pattern: dist/*
+        tagging_message: ${{ steps.version.outputs.repo_tag }}
