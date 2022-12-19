@@ -61835,6 +61835,102 @@ exports.DEP_CHECKER_IGNORE = process.env.DEP_CHECKER_IGNORE;
 
 /***/ }),
 
+/***/ 606:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const node_path_1 = __importDefault(__nccwpck_require__(9411));
+const node_child_process_1 = __nccwpck_require__(7718);
+const glob_1 = __nccwpck_require__(1957);
+const core = __importStar(__nccwpck_require__(2186));
+const utils_1 = __nccwpck_require__(1314);
+const constants_1 = __nccwpck_require__(9042);
+const CMD = "go list -u -m -e -json all";
+const GO_MOD = 'go.mod';
+const IGNORE = (constants_1.DEP_CHECKER_IGNORE === null || constants_1.DEP_CHECKER_IGNORE === void 0 ? void 0 : constants_1.DEP_CHECKER_IGNORE.split(/\s+/)) || [];
+const parseModules = (stdout) => {
+    return stdout.trim()
+        .split(/\n(?=\{)/) // Split list of objects
+        .map(obj => {
+        const module = JSON.parse(obj);
+        if (module.Error)
+            core.warning(module.Error.Err);
+        return module;
+    })
+        .filter(module => {
+        var _a;
+        return !module.Indirect && ((_a = module.Update) === null || _a === void 0 ? void 0 : _a.Version) && module.Version;
+    })
+        .map(({ Path, Version, Update }) => ({
+        name: Path,
+        wanted: Version,
+        latest: Update === null || Update === void 0 ? void 0 : Update.Version
+    }));
+};
+const getUpdates = (cwd) => {
+    return new Promise((resolve, reject) => {
+        (0, node_child_process_1.exec)(CMD, { cwd }, (err, stdout, stderr) => {
+            try {
+                const updatesList = parseModules(stdout);
+                resolve({
+                    configFile: node_path_1.default.join(cwd, GO_MOD),
+                    modules: updatesList.filter(state => (0, utils_1.filterSemverLevel)(state))
+                });
+            }
+            catch (err) {
+                core.error(`Command \`${CMD}\` failed:`);
+                core.error(stderr);
+                reject(err);
+            }
+        });
+    });
+};
+const getAllUpdates = async () => {
+    const configs = glob_1.glob.sync(`**/${GO_MOD}`, { ignore: IGNORE });
+    const updates = [];
+    for (const configFile of configs) {
+        const location = node_path_1.default.dirname(configFile);
+        console.log(`Scanning ${configFile} ...`);
+        const update = await getUpdates(location);
+        if (update.modules.length) {
+            updates.push(update);
+        }
+    }
+    return updates;
+};
+exports["default"] = getAllUpdates;
+
+
+/***/ }),
+
 /***/ 6144:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -61869,29 +61965,36 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(2186));
 const npm_1 = __importDefault(__nccwpck_require__(254));
+const go_1 = __importDefault(__nccwpck_require__(606));
 const jira_1 = __nccwpck_require__(2222);
 const constants_1 = __nccwpck_require__(9042);
 if (!constants_1.GITHUB_REPOSITORY) {
     throw new Error('GITHUB_REPOSITORY is empty');
 }
+const getUpdates = async () => {
+    const updates = await Promise.all([
+        (0, npm_1.default)(),
+        (0, go_1.default)()
+    ]);
+    return updates.filter(u => u.length).flat();
+};
 const main = async () => {
     var _a, _b;
-    const level = core.getInput('level');
     // Check updates
-    console.log('Checking NPM dependencies ...');
-    const updates = await (0, npm_1.default)(level);
+    console.log('Checking dependencies ...');
+    const updates = await getUpdates();
     if (!updates.length) {
         console.log('Everything up to date!');
         return;
     }
     console.log(`Found updates: ${JSON.stringify(updates, null, 2)}`);
     // Constants
-    const description = updates.map(({ packageJson, deps }) => {
+    const description = updates.map(({ configFile, modules }) => {
         const link = `https://github.com/${constants_1.GITHUB_REPOSITORY}/blob/${constants_1.GITHUB_REF_NAME}/package.json`;
-        const list = deps.map(({ name, wanted, latest }) => {
+        const list = modules.map(({ name, wanted, latest }) => {
             return `- Bump {{${name}}} from *${wanted}* to *${latest}*`;
         }).join('\n');
-        return `{{${packageJson}}} ([link|${link}])\n${list}`;
+        return `{{${configFile}}} ([link|${link}])\n${list}`;
     }).join('\n\n');
     // Jira
     console.log('Searching for existing Jira ticket ...');
@@ -61919,6 +62022,46 @@ main()
     .catch(error => {
     core.setFailed(error.message);
 });
+
+
+/***/ }),
+
+/***/ 6747:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.semverLevel = void 0;
+const core = __importStar(__nccwpck_require__(2186));
+const types_1 = __nccwpck_require__(5077);
+exports.semverLevel = core.getInput('level');
+if (!(exports.semverLevel in types_1.SemverLevels)) {
+    throw new Error(`Invalid level "${exports.semverLevel}", valid values are: major,minor,patch`);
+}
 
 
 /***/ }),
@@ -62016,10 +62159,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const path = __importStar(__nccwpck_require__(9411));
 const child_process_1 = __nccwpck_require__(2081);
-const semver_1 = __nccwpck_require__(1383);
 const glob_1 = __importDefault(__nccwpck_require__(1957));
+const core = __importStar(__nccwpck_require__(2186));
 const constants_1 = __nccwpck_require__(9042);
-const types_1 = __nccwpck_require__(5077);
+const utils_1 = __nccwpck_require__(1314);
 const CMD = 'npm outdated --json';
 const PACKAGE_JSON = 'package.json';
 const IGNORE = [
@@ -62027,40 +62170,40 @@ const IGNORE = [
     '**/node_modules/**',
     '.github/actions/dep-checker'
 ];
-const getPackagesLocation = () => {
-    const packagesLocations = glob_1.default.sync('**/package.json', { ignore: IGNORE });
-    return packagesLocations.map(pl => path.dirname(pl));
+const parseModules = (stdout) => {
+    const modulesObject = JSON.parse(stdout);
+    return Object.entries(modulesObject).map(([name, state]) => ({
+        name,
+        wanted: state.wanted,
+        latest: state.latest
+    }));
 };
-const filterLevel = (state, threshold) => {
-    const level = (0, semver_1.diff)(state.wanted, state.latest);
-    return level && level in types_1.ELevels && types_1.ELevels[level] >= types_1.ELevels[threshold];
-};
-const getUpdates = (cwd, level) => {
+const getUpdates = (cwd) => {
     return new Promise((resolve, reject) => {
         (0, child_process_1.exec)(CMD, { cwd }, (_, stdout, stderr) => {
             try {
-                const updatesMap = JSON.parse(stdout);
-                const updatesList = Object.entries(updatesMap).map(([name, state]) => ({ name, ...state }));
+                const updatesList = parseModules(stdout);
                 resolve({
-                    packageJson: path.join(cwd, PACKAGE_JSON),
-                    deps: updatesList.filter(state => filterLevel(state, level))
+                    configFile: path.join(cwd, PACKAGE_JSON),
+                    modules: updatesList.filter(state => (0, utils_1.filterSemverLevel)(state))
                 });
             }
             catch (err) {
-                console.log('Executing `npm outdated` failed:\n', stderr);
+                core.error(`Command \`${CMD}\` failed:`);
+                core.error(stderr);
                 reject(err);
             }
         });
     });
 };
-const getAllUpdates = async (level) => {
-    const locations = getPackagesLocation();
+const getAllUpdates = async () => {
+    const configs = glob_1.default.sync(`**/${PACKAGE_JSON}`, { ignore: IGNORE });
     const updates = [];
-    for (const location of locations) {
-        console.log(`Entering ${location} ...`);
-        const update = await getUpdates(location, level);
-        if (update.deps.length) {
-            console.log(`Found updates: ${JSON.stringify(update, null, 2)}`);
+    for (const configFile of configs) {
+        const location = path.dirname(configFile);
+        console.log(`Scanning ${configFile} ...`);
+        const update = await getUpdates(location);
+        if (update.modules.length) {
             updates.push(update);
         }
     }
@@ -62077,13 +62220,32 @@ exports["default"] = getAllUpdates;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.ELevels = void 0;
-var ELevels;
-(function (ELevels) {
-    ELevels[ELevels["patch"] = 0] = "patch";
-    ELevels[ELevels["minor"] = 1] = "minor";
-    ELevels[ELevels["major"] = 2] = "major";
-})(ELevels = exports.ELevels || (exports.ELevels = {}));
+exports.SemverLevels = void 0;
+var SemverLevels;
+(function (SemverLevels) {
+    SemverLevels[SemverLevels["patch"] = 0] = "patch";
+    SemverLevels[SemverLevels["minor"] = 1] = "minor";
+    SemverLevels[SemverLevels["major"] = 2] = "major";
+})(SemverLevels = exports.SemverLevels || (exports.SemverLevels = {}));
+
+
+/***/ }),
+
+/***/ 1314:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.filterSemverLevel = void 0;
+const semver_1 = __nccwpck_require__(1383);
+const input_1 = __nccwpck_require__(6747);
+const types_1 = __nccwpck_require__(5077);
+const filterSemverLevel = (state) => {
+    const val = (0, semver_1.diff)(state.wanted, state.latest);
+    return val && val in types_1.SemverLevels && types_1.SemverLevels[val] >= types_1.SemverLevels[input_1.semverLevel];
+};
+exports.filterSemverLevel = filterSemverLevel;
 
 
 /***/ }),
@@ -62157,6 +62319,14 @@ module.exports = require("https");
 
 "use strict";
 module.exports = require("net");
+
+/***/ }),
+
+/***/ 7718:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("node:child_process");
 
 /***/ }),
 
