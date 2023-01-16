@@ -5,14 +5,7 @@ on:
   - cron: '0 0 * * 0' # Every Sunday at 00:00
 
 env:
-  JIRA_TOKEN: ${{ secrets.jira_service_user_token }}
   DEP_CHECKER_VERSION: v1.0.0
-  # Uncomment to change default values
-  # JIRA_USER: search-service-user@risecodes.com
-  # JIRA_PROJECT: RIS
-  # JIRA_ISSUE_TYPE: Story
-  # DEP_CHECKER_LEVEL: major
-  # DEP_CHECKER_IGNORE:
 
 # Inspired by
 # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-using-an-action-inside-a-different-private-repository-than-the-workflow
@@ -31,5 +24,12 @@ jobs:
         path: ./.github/actions/dep-checker
     - name: Check updates
       uses: ./.github/actions/dep-checker
-      # with:
-      #   level: major
+      with:
+        level: major
+        jira_host: risecodes.atlassian.net
+        jira_user: search-service-user@risecodes.com
+        jira_token: ${{ secrets.jira_service_user_token }}
+        jira_project: RIS
+        jira_issue_type: Story
+        ignore: |
+          .github/**

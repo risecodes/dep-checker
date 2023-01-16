@@ -1,15 +1,14 @@
-import path from "node:path";
-import { exec } from "node:child_process";
-import { glob } from "glob";
-import * as core from "@actions/core";
-import { IGoModule, IUpdate, IUpdates } from "./types";
-import { filterSemverLevel } from "./utils";
-import { DEP_CHECKER_IGNORE } from "./constants";
+import path from 'node:path';
+import { exec } from 'node:child_process';
+import { glob } from 'glob';
+import * as core from '@actions/core';
+import { IGoModule, IGoModuleUpdate, IUpdate, IUpdates } from './types';
+import { filterSemverLevel } from './utils';
+import { IGNORE } from './config';
 
 
-const CMD = "go list -u -m -e -json all";
+const CMD = 'go list -u -m -e -json all';
 const GO_MOD = 'go.mod';
-const IGNORE = DEP_CHECKER_IGNORE?.split(/\s+/) || [];
 
 const parseModules = (stdout: string): IUpdate[] => {
   return stdout.trim()
@@ -19,19 +18,19 @@ const parseModules = (stdout: string): IUpdate[] => {
       if (module.Error) core.warning(module.Error.Err);
       return module;
     })
-    .filter(module => {
-      return !module.Indirect && module.Update?.Version && module.Version;
+    .filter((module): module is IGoModuleUpdate => {
+      return !module.Indirect && !!module.Update?.Version && !!module.Version;
     })
     .map(({ Path, Version, Update }) => ({
       name: Path,
-      wanted: Version!,
-      latest: Update?.Version!
+      wanted: Version,
+      latest: Update?.Version
     }));
 };
 
 const getUpdates = (cwd: string): Promise<IUpdates> => {
   return new Promise((resolve, reject) => {
-    exec(CMD, { cwd }, (err, stdout, stderr) => {
+    exec(CMD, { cwd }, (_, stdout, stderr) => {
       try {
         const updatesList = parseModules(stdout);
         resolve({

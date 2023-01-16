@@ -1,25 +1,18 @@
 import JiraApi from 'jira-client';
 import {
+  JIRA_HOST,
   JIRA_USER,
+  JIRA_TOKEN,
   JIRA_PROJECT,
   JIRA_ISSUE_TYPE,
-  JIRA_TOKEN,
   GITHUB_REPOSITORY,
-} from './constants';
-
-if (!GITHUB_REPOSITORY) {
-  throw new Error('GITHUB_REPOSITORY is empty');
-}
-
-if (!JIRA_TOKEN) {
-  throw new Error('JIRA_TOKEN is empty');
-}
+} from './config';
 
 const TICKET_SUMMARY = `Deps: ${GITHUB_REPOSITORY}`;
 
 const jira = new JiraApi({
   protocol: 'https',
-  host: 'risecodes.atlassian.net',
+  host: JIRA_HOST,
   username: JIRA_USER,
   password: JIRA_TOKEN,
   apiVersion: '2',

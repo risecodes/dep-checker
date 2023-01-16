@@ -2,7 +2,7 @@ import * as core from '@actions/core';
 import getNPMUpdates from './npm';
 import getGolangUpdates from './go';
 import { findIssue, createIssue, updateIssue } from './jira';
-import { GITHUB_REF_NAME, GITHUB_REPOSITORY } from './constants';
+import { GITHUB_REF_NAME, GITHUB_REPOSITORY } from './config';
 
 if (!GITHUB_REPOSITORY) {
   throw new Error('GITHUB_REPOSITORY is empty');
@@ -14,8 +14,9 @@ const getUpdates = async () => {
     getGolangUpdates()
   ]);
   return updates.filter(u => u.length).flat();
-}
+};
 
+console.log('ignore', core.getMultilineInput('ignore'));
 
 const main = async () => {
 
@@ -30,7 +31,7 @@ const main = async () => {
 
   // Constants
   const description = updates.map(({ configFile, modules }) => {
-    const link = `https://github.com/${GITHUB_REPOSITORY}/blob/${GITHUB_REF_NAME}/package.json`;
+    const link = `https://github.com/${GITHUB_REPOSITORY}/blob/${GITHUB_REF_NAME}/${configFile}`;
     const list = modules.map(({ name, wanted, latest }) => {
       return `- Bump {{${name}}} from *${wanted}* to *${latest}*`;
     }).join('\n');

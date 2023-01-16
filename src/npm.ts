@@ -1,16 +1,16 @@
 import * as path from 'node:path';
 import { exec } from 'child_process';
 import glob from 'glob';
-import * as core from "@actions/core";
-import { DEP_CHECKER_IGNORE } from './constants';
+import * as core from '@actions/core';
+import { IGNORE } from './config';
 import { INPMModule, IUpdate, IUpdates } from './types';
 import { filterSemverLevel } from './utils';
 
 const CMD = 'npm outdated --json';
 const PACKAGE_JSON = 'package.json';
 
-const IGNORE = [
-  ...DEP_CHECKER_IGNORE?.split(/\s+/) || [],
+const IGNORE_FOLDERS = [
+  ...IGNORE,
   '**/node_modules/**',
   '.github/actions/dep-checker'
 ];
@@ -44,7 +44,7 @@ const getUpdates = (cwd: string): Promise<IUpdates> => {
 };
 
 const getAllUpdates = async () => {
-  const configs = glob.sync(`**/${PACKAGE_JSON}`, { ignore: IGNORE });
+  const configs = glob.sync(`**/${PACKAGE_JSON}`, { ignore: IGNORE_FOLDERS });
   const updates: IUpdates[] = [];
   for (const configFile of configs) {
     const location = path.dirname(configFile);

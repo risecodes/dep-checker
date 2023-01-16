@@ -61817,20 +61817,56 @@ try {
 
 /***/ }),
 
-/***/ 9042:
-/***/ ((__unused_webpack_module, exports) => {
+/***/ 6373:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.DEP_CHECKER_IGNORE = exports.JIRA_ISSUE_TYPE = exports.JIRA_PROJECT = exports.JIRA_TOKEN = exports.JIRA_USER = exports.GITHUB_REF_NAME = exports.GITHUB_REPOSITORY = void 0;
+exports.GITHUB_REF_NAME = exports.GITHUB_REPOSITORY = exports.IGNORE = exports.LEVEL = exports.JIRA_ISSUE_TYPE = exports.JIRA_PROJECT = exports.JIRA_TOKEN = exports.JIRA_USER = exports.JIRA_HOST = void 0;
+const core = __importStar(__nccwpck_require__(2186));
+const types_1 = __nccwpck_require__(5077);
+exports.JIRA_HOST = core.getInput('jira_host');
+exports.JIRA_USER = core.getInput('jira_user');
+exports.JIRA_TOKEN = core.getInput('jira_token');
+exports.JIRA_PROJECT = core.getInput('jira_project');
+exports.JIRA_ISSUE_TYPE = core.getInput('jira_issue_type');
+exports.LEVEL = core.getInput('level');
+exports.IGNORE = core.getMultilineInput('ignore');
 exports.GITHUB_REPOSITORY = process.env.GITHUB_REPOSITORY;
-exports.GITHUB_REF_NAME = process.env.GITHUB_REF_NAM || 'staging';
-exports.JIRA_USER = process.env.JIRA_USER || 'search-service-user@risecodes.com';
-exports.JIRA_TOKEN = process.env.JIRA_TOKEN;
-exports.JIRA_PROJECT = process.env.JIRA_PROJECT || 'RIS';
-exports.JIRA_ISSUE_TYPE = process.env.JIRA_ISSUE_TYPE || 'Story';
-exports.DEP_CHECKER_IGNORE = process.env.DEP_CHECKER_IGNORE;
+exports.GITHUB_REF_NAME = process.env.GITHUB_REF_NAME;
+if (!exports.GITHUB_REPOSITORY) {
+    throw new Error('GITHUB_REPOSITORY is empty');
+}
+if (!exports.GITHUB_REF_NAME) {
+    throw new Error('GITHUB_REF_NAME is empty');
+}
+if (!(exports.LEVEL in types_1.SemverLevels)) {
+    throw new Error(`Invalid level "${exports.LEVEL}", valid values are: major,minor,patch`);
+}
 
 
 /***/ }),
@@ -61872,10 +61908,9 @@ const node_child_process_1 = __nccwpck_require__(7718);
 const glob_1 = __nccwpck_require__(1957);
 const core = __importStar(__nccwpck_require__(2186));
 const utils_1 = __nccwpck_require__(1314);
-const constants_1 = __nccwpck_require__(9042);
-const CMD = "go list -u -m -e -json all";
+const config_1 = __nccwpck_require__(6373);
+const CMD = 'go list -u -m -e -json all';
 const GO_MOD = 'go.mod';
-const IGNORE = (constants_1.DEP_CHECKER_IGNORE === null || constants_1.DEP_CHECKER_IGNORE === void 0 ? void 0 : constants_1.DEP_CHECKER_IGNORE.split(/\s+/)) || [];
 const parseModules = (stdout) => {
     return stdout.trim()
         .split(/\n(?=\{)/) // Split list of objects
@@ -61885,9 +61920,9 @@ const parseModules = (stdout) => {
             core.warning(module.Error.Err);
         return module;
     })
-        .filter(module => {
+        .filter((module) => {
         var _a;
-        return !module.Indirect && ((_a = module.Update) === null || _a === void 0 ? void 0 : _a.Version) && module.Version;
+        return !module.Indirect && !!((_a = module.Update) === null || _a === void 0 ? void 0 : _a.Version) && !!module.Version;
     })
         .map(({ Path, Version, Update }) => ({
         name: Path,
@@ -61897,7 +61932,7 @@ const parseModules = (stdout) => {
 };
 const getUpdates = (cwd) => {
     return new Promise((resolve, reject) => {
-        (0, node_child_process_1.exec)(CMD, { cwd }, (err, stdout, stderr) => {
+        (0, node_child_process_1.exec)(CMD, { cwd }, (_, stdout, stderr) => {
             try {
                 const updatesList = parseModules(stdout);
                 resolve({
@@ -61914,7 +61949,7 @@ const getUpdates = (cwd) => {
     });
 };
 const getAllUpdates = async () => {
-    const configs = glob_1.glob.sync(`**/${GO_MOD}`, { ignore: IGNORE });
+    const configs = glob_1.glob.sync(`**/${GO_MOD}`, { ignore: config_1.IGNORE });
     const updates = [];
     for (const configFile of configs) {
         const location = node_path_1.default.dirname(configFile);
@@ -61967,8 +62002,8 @@ const core = __importStar(__nccwpck_require__(2186));
 const npm_1 = __importDefault(__nccwpck_require__(254));
 const go_1 = __importDefault(__nccwpck_require__(606));
 const jira_1 = __nccwpck_require__(2222);
-const constants_1 = __nccwpck_require__(9042);
-if (!constants_1.GITHUB_REPOSITORY) {
+const config_1 = __nccwpck_require__(6373);
+if (!config_1.GITHUB_REPOSITORY) {
     throw new Error('GITHUB_REPOSITORY is empty');
 }
 const getUpdates = async () => {
@@ -61978,6 +62013,7 @@ const getUpdates = async () => {
     ]);
     return updates.filter(u => u.length).flat();
 };
+console.log('ignore', core.getMultilineInput('ignore'));
 const main = async () => {
     var _a, _b;
     // Check updates
@@ -61990,7 +62026,7 @@ const main = async () => {
     console.log(`Found updates: ${JSON.stringify(updates, null, 2)}`);
     // Constants
     const description = updates.map(({ configFile, modules }) => {
-        const link = `https://github.com/${constants_1.GITHUB_REPOSITORY}/blob/${constants_1.GITHUB_REF_NAME}/package.json`;
+        const link = `https://github.com/${config_1.GITHUB_REPOSITORY}/blob/${config_1.GITHUB_REF_NAME}/${configFile}`;
         const list = modules.map(({ name, wanted, latest }) => {
             return `- Bump {{${name}}} from *${wanted}* to *${latest}*`;
         }).join('\n');
@@ -62026,46 +62062,6 @@ main()
 
 /***/ }),
 
-/***/ 6747:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.semverLevel = void 0;
-const core = __importStar(__nccwpck_require__(2186));
-const types_1 = __nccwpck_require__(5077);
-exports.semverLevel = core.getInput('level');
-if (!(exports.semverLevel in types_1.SemverLevels)) {
-    throw new Error(`Invalid level "${exports.semverLevel}", valid values are: major,minor,patch`);
-}
-
-
-/***/ }),
-
 /***/ 2222:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -62077,29 +62073,23 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.updateIssue = exports.createIssue = exports.findIssue = void 0;
 const jira_client_1 = __importDefault(__nccwpck_require__(6411));
-const constants_1 = __nccwpck_require__(9042);
-if (!constants_1.GITHUB_REPOSITORY) {
-    throw new Error('GITHUB_REPOSITORY is empty');
-}
-if (!constants_1.JIRA_TOKEN) {
-    throw new Error('JIRA_TOKEN is empty');
-}
-const TICKET_SUMMARY = `Deps: ${constants_1.GITHUB_REPOSITORY}`;
+const config_1 = __nccwpck_require__(6373);
+const TICKET_SUMMARY = `Deps: ${config_1.GITHUB_REPOSITORY}`;
 const jira = new jira_client_1.default({
     protocol: 'https',
-    host: 'risecodes.atlassian.net',
-    username: constants_1.JIRA_USER,
-    password: constants_1.JIRA_TOKEN,
+    host: config_1.JIRA_HOST,
+    username: config_1.JIRA_USER,
+    password: config_1.JIRA_TOKEN,
     apiVersion: '2',
     strictSSL: true
 });
 const findIssue = async () => {
     var _a;
     const jql = `
-    reporter = "${constants_1.JIRA_USER}"
-    and project = ${constants_1.JIRA_PROJECT}
+    reporter = "${config_1.JIRA_USER}"
+    and project = ${config_1.JIRA_PROJECT}
     and statuscategory != done
-    and issuetype = ${constants_1.JIRA_ISSUE_TYPE}
+    and issuetype = ${config_1.JIRA_ISSUE_TYPE}
     and summary ~ "${TICKET_SUMMARY}"
   `;
     const result = await jira.searchJira(jql, { fields: ['description'] });
@@ -62111,8 +62101,8 @@ const createIssue = (description) => {
         fields: {
             summary: TICKET_SUMMARY,
             description,
-            project: { key: constants_1.JIRA_PROJECT },
-            issuetype: { name: constants_1.JIRA_ISSUE_TYPE }
+            project: { key: config_1.JIRA_PROJECT },
+            issuetype: { name: config_1.JIRA_ISSUE_TYPE }
         }
     });
 };
@@ -62161,12 +62151,12 @@ const path = __importStar(__nccwpck_require__(9411));
 const child_process_1 = __nccwpck_require__(2081);
 const glob_1 = __importDefault(__nccwpck_require__(1957));
 const core = __importStar(__nccwpck_require__(2186));
-const constants_1 = __nccwpck_require__(9042);
+const config_1 = __nccwpck_require__(6373);
 const utils_1 = __nccwpck_require__(1314);
 const CMD = 'npm outdated --json';
 const PACKAGE_JSON = 'package.json';
-const IGNORE = [
-    ...(constants_1.DEP_CHECKER_IGNORE === null || constants_1.DEP_CHECKER_IGNORE === void 0 ? void 0 : constants_1.DEP_CHECKER_IGNORE.split(/\s+/)) || [],
+const IGNORE_FOLDERS = [
+    ...config_1.IGNORE,
     '**/node_modules/**',
     '.github/actions/dep-checker'
 ];
@@ -62197,7 +62187,7 @@ const getUpdates = (cwd) => {
     });
 };
 const getAllUpdates = async () => {
-    const configs = glob_1.default.sync(`**/${PACKAGE_JSON}`, { ignore: IGNORE });
+    const configs = glob_1.default.sync(`**/${PACKAGE_JSON}`, { ignore: IGNORE_FOLDERS });
     const updates = [];
     for (const configFile of configs) {
         const location = path.dirname(configFile);
@@ -62239,11 +62229,11 @@ var SemverLevels;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.filterSemverLevel = void 0;
 const semver_1 = __nccwpck_require__(1383);
-const input_1 = __nccwpck_require__(6747);
+const config_1 = __nccwpck_require__(6373);
 const types_1 = __nccwpck_require__(5077);
 const filterSemverLevel = (state) => {
     const val = (0, semver_1.diff)(state.wanted, state.latest);
-    return val && val in types_1.SemverLevels && types_1.SemverLevels[val] >= types_1.SemverLevels[input_1.semverLevel];
+    return val && val in types_1.SemverLevels && types_1.SemverLevels[val] >= types_1.SemverLevels[config_1.LEVEL];
 };
 exports.filterSemverLevel = filterSemverLevel;
 

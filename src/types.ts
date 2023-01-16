@@ -25,19 +25,22 @@ export interface INPMModule {
   location?: string
 }
 
-export interface IGoModule {
+export interface IGoModuleUpdate {
   Path: string;
-  Main?: boolean;
-  GoMod?: string;
-  GoVersion?: string;
-  Version?: string;
-  Time?: string;
-  Indirect?: boolean;
-  Update?: {
+  Version: string;
+  Update: {
     Path: string;
     Version: string;
     Time: string;
   };
+}
+
+export interface IGoModule extends Partial<IGoModuleUpdate> {
+  Main?: boolean;
+  GoMod?: string;
+  GoVersion?: string;
+  Time?: string;
+  Indirect?: boolean;
   Replace?: {
     Path: string;
     Dir: string;

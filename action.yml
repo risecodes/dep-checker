@@ -1,9 +1,27 @@
 name: 'Dep Checker'
 description: 'Check dependencies to update, create a Jira ticket'
 inputs:
+  jira_host:
+    description: Jira hostname
+    required: true
+  jira_user:
+    description: Jira username used to login
+    required: true
+  jira_token:
+    description: Jira user token
+    required: true
+  jira_project:
+    description: Jira project to create tickets
+    required: true
+  jira_issue_type:
+    description: Jira ticket type
+    required: true
   level:
     description: SemVer level to check for (major|minor|patch)
     default: major
+  ignore:
+    description: Multiline string of paths to be ignored from check
+    default: .github/**
 runs:
   using: 'node16'
   main: 'dist/index.js'
