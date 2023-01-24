@@ -8,20 +8,23 @@
   "scripts": {
     "build": "ncc build src/index.ts",
     "precommit": "npm run build && git add dist",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest --config ./jest/config.js",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix"
   },
   "pre-commit": "precommit",
   "devDependencies": {
     "@types/glob": "^8.0.0",
+    "@types/jest": "^29.2.6",
     "@types/jira-client": "^7.1.5",
     "@types/node": "^18.11.10",
     "@types/semver": "^7.3.13",
     "@typescript-eslint/eslint-plugin": "^5.45.0",
     "@vercel/ncc": "^0.34.0",
     "eslint": "^8.29.0",
+    "jest": "^29.4.0",
     "pre-commit": "^1.2.2",
+    "ts-jest": "^29.0.5",
     "typescript": "^4.9.3"
   },
   "dependencies": {
