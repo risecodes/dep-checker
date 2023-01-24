@@ -6,7 +6,7 @@ import {
   JIRA_PROJECT,
   JIRA_ISSUE_TYPE,
   GITHUB_REPOSITORY,
-} from './config';
+} from '../config';
 
 const TICKET_SUMMARY = `Deps: ${GITHUB_REPOSITORY}`;
 

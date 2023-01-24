@@ -1,66 +1,17 @@
 import * as core from '@actions/core';
-import getNPMUpdates from './npm';
-import getGolangUpdates from './go';
-import { findIssue, createIssue, updateIssue } from './jira';
-import { GITHUB_REF_NAME, GITHUB_REPOSITORY } from './config';
+import NPMChecker from './dep-checker/npm';
+import GoChecker from './dep-checker/go';
+import sendReport from './report';
 
-if (!GITHUB_REPOSITORY) {
-  throw new Error('GITHUB_REPOSITORY is empty');
-}
-
-const getUpdates = async () => {
-  const updates = await Promise.all([
-    getNPMUpdates(),
-    getGolangUpdates()
-  ]);
-  return updates.filter(u => u.length).flat();
-};
-
-console.log('ignore', core.getMultilineInput('ignore'));
 
 const main = async () => {
-
-  // Check updates
-  console.log('Checking dependencies ...');
-  const updates = await getUpdates();
-  if (!updates.length) {
-    console.log('Everything up to date!');
-    return;
-  }
-  console.log(`Found updates: ${JSON.stringify(updates, null, 2)}`);
-
-  // Constants
-  const description = updates.map(({ configFile, modules }) => {
-    const link = `https://github.com/${GITHUB_REPOSITORY}/blob/${GITHUB_REF_NAME}/${configFile}`;
-    const list = modules.map(({ name, wanted, latest }) => {
-      return `- Bump {{${name}}} from *${wanted}* to *${latest}*`;
-    }).join('\n');
-    return `{{${configFile}}} ([link|${link}])\n${list}`;
-  }).join('\n\n');
-
-  // Jira
-  console.log('Searching for existing Jira ticket ...');
-  const issue = await findIssue();
-  if (issue) {
-    console.log(`Found Jira ticket: ${issue.key}`);
-    console.log('Ticket description:\n');
-    console.log(`\t${issue.fields?.description?.replace(/\n/g, '\n\t')}\n`);
-    if (issue.fields.description != description) {
-      console.log('Updating description ...');
-      await updateIssue(issue.id, description);
-      console.log(`Ticket ${issue.key} updated successfully`);
-    } else {
-      console.log(`Leaving Jira ticket ${issue.key} unchanged`);
-    }
-  } else {
-    console.log('No existing Jira ticket, creating a new one ...');
-    const result = await createIssue(description);
-    console.log(`Ticket ${result.key} created successfully`);
-  }
-
+  const updates = [NPMChecker, GoChecker].map(checker => checker.getAvailableUpdates());
+  const allModules = updates.filter(u => u.length).flat();
+  core.info(JSON.stringify(allModules, null, 2));
+  await sendReport(allModules);
 };
 
 main()
   .catch(error => {
-    core.setFailed(error.message);
+    core.setFailed(error.stack);
   });

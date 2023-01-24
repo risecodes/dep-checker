@@ -1,6 +1,6 @@
 import { diff } from 'semver';
-import { LEVEL } from './config';
-import { IUpdate, SemverLevels, TSemverLevel } from './types';
+import { LEVEL } from '../config';
+import { IUpdate, SemverLevels, TSemverLevel } from '../types';
 
 
 export const filterSemverLevel = (state: IUpdate) => {

@@ -32964,7 +32964,7 @@ module.exports = {
   creator: __nccwpck_require__(7218),
   entry: __nccwpck_require__(4560),
   har: __nccwpck_require__(5579),
-  header: __nccwpck_require__(5147),
+  header: __nccwpck_require__(9048),
   log: __nccwpck_require__(3013),
   page: __nccwpck_require__(4777),
   pageTimings: __nccwpck_require__(5538),
@@ -61871,7 +61871,78 @@ if (!(exports.LEVEL in types_1.SemverLevels)) {
 
 /***/ }),
 
-/***/ 606:
+/***/ 6787:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const node_child_process_1 = __nccwpck_require__(7718);
+const core = __importStar(__nccwpck_require__(2186));
+const config_1 = __nccwpck_require__(6373);
+const _1 = __importDefault(__nccwpck_require__(4334));
+const GO_MOD = 'go.mod';
+const CMD_ARGS = ['list', '-u', '-m', '-e', '-json', 'all'];
+const getUpdates = (cwd) => {
+    const { stdout, error, stderr } = (0, node_child_process_1.spawnSync)('go', CMD_ARGS, { cwd, encoding: 'utf8' });
+    if (error)
+        throw error;
+    if (stderr)
+        throw new Error(stderr);
+    return stdout.trim()
+        .split(/\n(?=\{)/) // Split list of objects
+        .map(obj => {
+        const module = JSON.parse(obj);
+        if (module.Error)
+            core.warning(module.Error.Err);
+        return module;
+    })
+        .filter((module) => {
+        var _a;
+        return !module.Indirect && !!((_a = module.Update) === null || _a === void 0 ? void 0 : _a.Version) && !!module.Version;
+    })
+        .map(({ Path, Version, Update }) => ({
+        name: Path,
+        wanted: Version,
+        latest: Update === null || Update === void 0 ? void 0 : Update.Version
+    }));
+};
+const GoChecker = new _1.default({
+    packageFile: GO_MOD,
+    ignore: config_1.IGNORE
+}, getUpdates);
+exports["default"] = GoChecker;
+
+
+/***/ }),
+
+/***/ 4334:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -61904,64 +61975,92 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const node_path_1 = __importDefault(__nccwpck_require__(9411));
-const node_child_process_1 = __nccwpck_require__(7718);
-const glob_1 = __nccwpck_require__(1957);
+const utils_1 = __nccwpck_require__(7540);
 const core = __importStar(__nccwpck_require__(2186));
-const utils_1 = __nccwpck_require__(1314);
+const glob_1 = __nccwpck_require__(1957);
+class DepChecker {
+    constructor(parameters, getUpdates) {
+        this.packageFile = parameters.packageFile;
+        this.ignore = parameters.ignore;
+        this.getUpdates = getUpdates;
+    }
+    getAvailableUpdates() {
+        const configs = glob_1.glob.sync(`**/${this.packageFile}`, { ignore: this.ignore });
+        const updates = [];
+        for (const configFile of configs) {
+            core.info(`Scanning ${configFile} ...`);
+            const location = node_path_1.default.dirname(configFile);
+            const update = this.getUpdates(location);
+            const modules = update.filter(state => (0, utils_1.filterSemverLevel)(state));
+            if (update.length) {
+                updates.push({ configFile, modules });
+            }
+        }
+        return updates;
+    }
+}
+exports["default"] = DepChecker;
+
+
+/***/ }),
+
+/***/ 4240:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const node_child_process_1 = __nccwpck_require__(7718);
 const config_1 = __nccwpck_require__(6373);
-const CMD = 'go list -u -m -e -json all';
-const GO_MOD = 'go.mod';
-const parseModules = (stdout) => {
-    return stdout.trim()
-        .split(/\n(?=\{)/) // Split list of objects
-        .map(obj => {
-        const module = JSON.parse(obj);
-        if (module.Error)
-            core.warning(module.Error.Err);
-        return module;
-    })
-        .filter((module) => {
-        var _a;
-        return !module.Indirect && !!((_a = module.Update) === null || _a === void 0 ? void 0 : _a.Version) && !!module.Version;
-    })
-        .map(({ Path, Version, Update }) => ({
-        name: Path,
-        wanted: Version,
-        latest: Update === null || Update === void 0 ? void 0 : Update.Version
+const _1 = __importDefault(__nccwpck_require__(4334));
+const PACKAGE_JSON = 'package.json';
+const CMD_ARGS = ['outdated', '--json'];
+const IGNORE_FOLDERS = [
+    ...config_1.IGNORE,
+    '**/node_modules/**',
+    '.github/actions/dep-checker'
+];
+const getUpdates = (cwd) => {
+    const { stdout, stderr, error } = (0, node_child_process_1.spawnSync)('npm', CMD_ARGS, { cwd, encoding: 'utf8' });
+    if (error)
+        throw error;
+    if (stderr)
+        throw new Error(stderr);
+    const modules = JSON.parse(stdout);
+    return Object.entries(modules)
+        .map(([name, state]) => ({
+        name,
+        wanted: state.wanted,
+        latest: state.latest
     }));
 };
-const getUpdates = (cwd) => {
-    return new Promise((resolve, reject) => {
-        (0, node_child_process_1.exec)(CMD, { cwd }, (_, stdout, stderr) => {
-            try {
-                const updatesList = parseModules(stdout);
-                resolve({
-                    configFile: node_path_1.default.join(cwd, GO_MOD),
-                    modules: updatesList.filter(state => (0, utils_1.filterSemverLevel)(state))
-                });
-            }
-            catch (err) {
-                core.error(`Command \`${CMD}\` failed:`);
-                core.error(stderr);
-                reject(err);
-            }
-        });
-    });
+const NPMChecker = new _1.default({
+    packageFile: PACKAGE_JSON,
+    ignore: IGNORE_FOLDERS
+}, getUpdates);
+exports["default"] = NPMChecker;
+
+
+/***/ }),
+
+/***/ 7540:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.filterSemverLevel = void 0;
+const semver_1 = __nccwpck_require__(1383);
+const config_1 = __nccwpck_require__(6373);
+const types_1 = __nccwpck_require__(5077);
+const filterSemverLevel = (state) => {
+    const val = (0, semver_1.diff)(state.wanted, state.latest);
+    return val && val in types_1.SemverLevels && types_1.SemverLevels[val] >= types_1.SemverLevels[config_1.LEVEL];
 };
-const getAllUpdates = async () => {
-    const configs = glob_1.glob.sync(`**/${GO_MOD}`, { ignore: config_1.IGNORE });
-    const updates = [];
-    for (const configFile of configs) {
-        const location = node_path_1.default.dirname(configFile);
-        console.log(`Scanning ${configFile} ...`);
-        const update = await getUpdates(location);
-        if (update.modules.length) {
-            updates.push(update);
-        }
-    }
-    return updates;
-};
-exports["default"] = getAllUpdates;
+exports.filterSemverLevel = filterSemverLevel;
 
 
 /***/ }),
@@ -61999,70 +62098,94 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(2186));
-const npm_1 = __importDefault(__nccwpck_require__(254));
-const go_1 = __importDefault(__nccwpck_require__(606));
-const jira_1 = __nccwpck_require__(2222);
-const config_1 = __nccwpck_require__(6373);
-if (!config_1.GITHUB_REPOSITORY) {
-    throw new Error('GITHUB_REPOSITORY is empty');
-}
-const getUpdates = async () => {
-    const updates = await Promise.all([
-        (0, npm_1.default)(),
-        (0, go_1.default)()
-    ]);
-    return updates.filter(u => u.length).flat();
-};
-console.log('ignore', core.getMultilineInput('ignore'));
+const npm_1 = __importDefault(__nccwpck_require__(4240));
+const go_1 = __importDefault(__nccwpck_require__(6787));
+const report_1 = __importDefault(__nccwpck_require__(9895));
 const main = async () => {
-    var _a, _b;
-    // Check updates
-    console.log('Checking dependencies ...');
-    const updates = await getUpdates();
-    if (!updates.length) {
-        console.log('Everything up to date!');
-        return;
-    }
-    console.log(`Found updates: ${JSON.stringify(updates, null, 2)}`);
-    // Constants
-    const description = updates.map(({ configFile, modules }) => {
-        const link = `https://github.com/${config_1.GITHUB_REPOSITORY}/blob/${config_1.GITHUB_REF_NAME}/${configFile}`;
-        const list = modules.map(({ name, wanted, latest }) => {
-            return `- Bump {{${name}}} from *${wanted}* to *${latest}*`;
-        }).join('\n');
-        return `{{${configFile}}} ([link|${link}])\n${list}`;
-    }).join('\n\n');
-    // Jira
-    console.log('Searching for existing Jira ticket ...');
-    const issue = await (0, jira_1.findIssue)();
-    if (issue) {
-        console.log(`Found Jira ticket: ${issue.key}`);
-        console.log('Ticket description:\n');
-        console.log(`\t${(_b = (_a = issue.fields) === null || _a === void 0 ? void 0 : _a.description) === null || _b === void 0 ? void 0 : _b.replace(/\n/g, '\n\t')}\n`);
-        if (issue.fields.description != description) {
-            console.log('Updating description ...');
-            await (0, jira_1.updateIssue)(issue.id, description);
-            console.log(`Ticket ${issue.key} updated successfully`);
-        }
-        else {
-            console.log(`Leaving Jira ticket ${issue.key} unchanged`);
-        }
-    }
-    else {
-        console.log('No existing Jira ticket, creating a new one ...');
-        const result = await (0, jira_1.createIssue)(description);
-        console.log(`Ticket ${result.key} created successfully`);
-    }
+    const updates = [npm_1.default, go_1.default].map(checker => checker.getAvailableUpdates());
+    const allModules = updates.filter(u => u.length).flat();
+    core.info(JSON.stringify(allModules, null, 2));
+    await (0, report_1.default)(allModules);
 };
 main()
     .catch(error => {
-    core.setFailed(error.message);
+    core.setFailed(error.stack);
 });
 
 
 /***/ }),
 
-/***/ 2222:
+/***/ 9895:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const core = __importStar(__nccwpck_require__(2186));
+const jira_1 = __nccwpck_require__(5147);
+const config_1 = __nccwpck_require__(6373);
+const getGithubLink = (configFile) => {
+    return `https://github.com/${config_1.GITHUB_REPOSITORY}/blob/${config_1.GITHUB_REF_NAME}/${configFile}`;
+};
+const getModuleDescription = (modules) => {
+    return modules.map(({ name, wanted, latest }) => {
+        return `- Bump {{${name}}} from *${wanted}* to *${latest}*`;
+    }).join('\n');
+};
+const getReportDescription = (updates) => {
+    return updates.map(({ configFile, modules }) => {
+        const link = getGithubLink(configFile);
+        const list = getModuleDescription(modules);
+        return `{{${configFile}}} ([link|${link}])\n${list}`;
+    }).join('\n\n');
+};
+const sendReport = async (updates) => {
+    const reportDescription = getReportDescription(updates);
+    const existingIssue = await (0, jira_1.findIssue)();
+    if (!existingIssue) {
+        const result = await (0, jira_1.createIssue)(reportDescription);
+        core.info(`Ticket ${result.key} created successfully`);
+    }
+    else {
+        if (existingIssue.fields.description !== reportDescription) {
+            core.info('Updating description ...');
+            await (0, jira_1.updateIssue)(existingIssue.id, reportDescription);
+            core.info(`Ticket ${existingIssue.key} updated successfully`);
+        }
+        else {
+            core.info(`Leaving Jira ticket ${existingIssue.key} unchanged`);
+        }
+    }
+};
+exports["default"] = sendReport;
+
+
+/***/ }),
+
+/***/ 5147:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -62115,95 +62238,6 @@ exports.updateIssue = updateIssue;
 
 /***/ }),
 
-/***/ 254:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-const path = __importStar(__nccwpck_require__(9411));
-const child_process_1 = __nccwpck_require__(2081);
-const glob_1 = __importDefault(__nccwpck_require__(1957));
-const core = __importStar(__nccwpck_require__(2186));
-const config_1 = __nccwpck_require__(6373);
-const utils_1 = __nccwpck_require__(1314);
-const CMD = 'npm outdated --json';
-const PACKAGE_JSON = 'package.json';
-const IGNORE_FOLDERS = [
-    ...config_1.IGNORE,
-    '**/node_modules/**',
-    '.github/actions/dep-checker'
-];
-const parseModules = (stdout) => {
-    const modulesObject = JSON.parse(stdout);
-    return Object.entries(modulesObject).map(([name, state]) => ({
-        name,
-        wanted: state.wanted,
-        latest: state.latest
-    }));
-};
-const getUpdates = (cwd) => {
-    return new Promise((resolve, reject) => {
-        (0, child_process_1.exec)(CMD, { cwd }, (_, stdout, stderr) => {
-            try {
-                const updatesList = parseModules(stdout);
-                resolve({
-                    configFile: path.join(cwd, PACKAGE_JSON),
-                    modules: updatesList.filter(state => (0, utils_1.filterSemverLevel)(state))
-                });
-            }
-            catch (err) {
-                core.error(`Command \`${CMD}\` failed:`);
-                core.error(stderr);
-                reject(err);
-            }
-        });
-    });
-};
-const getAllUpdates = async () => {
-    const configs = glob_1.default.sync(`**/${PACKAGE_JSON}`, { ignore: IGNORE_FOLDERS });
-    const updates = [];
-    for (const configFile of configs) {
-        const location = path.dirname(configFile);
-        console.log(`Scanning ${configFile} ...`);
-        const update = await getUpdates(location);
-        if (update.modules.length) {
-            updates.push(update);
-        }
-    }
-    return updates;
-};
-exports["default"] = getAllUpdates;
-
-
-/***/ }),
-
 /***/ 5077:
 /***/ ((__unused_webpack_module, exports) => {
 
@@ -62221,25 +62255,6 @@ var SemverLevels;
 
 /***/ }),
 
-/***/ 1314:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.filterSemverLevel = void 0;
-const semver_1 = __nccwpck_require__(1383);
-const config_1 = __nccwpck_require__(6373);
-const types_1 = __nccwpck_require__(5077);
-const filterSemverLevel = (state) => {
-    const val = (0, semver_1.diff)(state.wanted, state.latest);
-    return val && val in types_1.SemverLevels && types_1.SemverLevels[val] >= types_1.SemverLevels[config_1.LEVEL];
-};
-exports.filterSemverLevel = filterSemverLevel;
-
-
-/***/ }),
-
 /***/ 9491:
 /***/ ((module) => {
 
@@ -62253,14 +62268,6 @@ module.exports = require("assert");
 
 "use strict";
 module.exports = require("buffer");
-
-/***/ }),
-
-/***/ 2081:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("child_process");
 
 /***/ }),
 
@@ -62508,7 +62515,7 @@ module.exports = JSON.parse('{"$id":"har.json#","$schema":"http://json-schema.or
 
 /***/ }),
 
-/***/ 5147:
+/***/ 9048:
 /***/ ((module) => {
 
 "use strict";
