@@ -1,6 +1,6 @@
 import { spawnSync } from 'node:child_process';
 import { IGNORE } from '../config';
-import { IUpdate } from '../types';
+import { IModuleUpdate } from '../types';
 import DepChecker from '.';
 
 const PACKAGE_JSON = 'package.json';
@@ -20,7 +20,7 @@ interface INPMModule {
   location?: string
 }
 
-const getUpdates = (cwd: string): IUpdate[] => {
+const getUpdates = (cwd: string): IModuleUpdate[] => {
 
   const { stdout, stderr, error } = spawnSync('npm', CMD_ARGS, { cwd, encoding: 'utf8' });
   if (error) throw error;
@@ -37,7 +37,7 @@ const getUpdates = (cwd: string): IUpdate[] => {
 };
 
 const NPMChecker = new DepChecker({
-  packageFile: PACKAGE_JSON,
+  packageFilename: PACKAGE_JSON,
   ignore: IGNORE_FOLDERS
 }, getUpdates);
 

@@ -1,28 +1,28 @@
 import * as core from '@actions/core';
 import { findIssue, createIssue, updateIssue } from '../services/jira';
 import { GITHUB_REF_NAME, GITHUB_REPOSITORY } from '../config';
-import { IUpdate, IUpdates } from '../types';
+import { IModuleUpdate, IPackageUpdates } from '../types';
 
 
-const getGithubLink = (configFile: string) => {
-  return `https://github.com/${GITHUB_REPOSITORY}/blob/${GITHUB_REF_NAME}/${configFile}`;
+const getGithubLink = (packagePath: string) => {
+  return `https://github.com/${GITHUB_REPOSITORY}/blob/${GITHUB_REF_NAME}/${packagePath}`;
 };
 
-const getModuleDescription = (modules: IUpdate[]) => {
+const getModuleDescription = (modules: IModuleUpdate[]) => {
   return modules.map(({ name, wanted, latest }) => {
     return `- Bump {{${name}}} from *${wanted}* to *${latest}*`;
   }).join('\n');
 };
 
-const getReportDescription = (updates: IUpdates[]) => {
-  return updates.map(({ configFile, modules }) => {
-    const link = getGithubLink(configFile);
+const getReportDescription = (updates: IPackageUpdates[]) => {
+  return updates.map(({ packagePath, modules }) => {
+    const link = getGithubLink(packagePath);
     const list = getModuleDescription(modules);
-    return `{{${configFile}}} ([link|${link}])\n${list}`;
+    return `{{${packagePath}}} ([link|${link}])\n${list}`;
   }).join('\n\n');
 };
 
-const sendReport = async (updates: IUpdates[]) => {
+const sendReport = async (updates: IPackageUpdates[]) => {
   const reportDescription = getReportDescription(updates);
   const existingIssue = await findIssue();
   if (!existingIssue) {

@@ -1,6 +1,6 @@
 import { spawnSync } from 'node:child_process';
 import * as core from '@actions/core';
-import { IUpdate } from '../types';
+import { IModuleUpdate } from '../types';
 import { IGNORE } from '../config';
 import DepChecker from '.';
 
@@ -32,7 +32,7 @@ interface IGoModule {
 }
 
 
-const getUpdates = (cwd: string): IUpdate[] => {
+const getUpdates = (cwd: string): IModuleUpdate[] => {
   const { stdout, error, stderr } = spawnSync('go', CMD_ARGS, { cwd, encoding: 'utf8' });
   if (error) throw error;
   if (stderr) throw new Error(stderr);
@@ -55,7 +55,7 @@ const getUpdates = (cwd: string): IUpdate[] => {
 };
 
 const GoChecker = new DepChecker({
-  packageFile: GO_MOD,
+  packageFilename: GO_MOD,
   ignore: IGNORE
 }, getUpdates);
 

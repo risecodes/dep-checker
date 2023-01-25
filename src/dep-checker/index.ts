@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { IUpdate, IUpdates } from '../types';
+import { IModuleUpdate, IPackageUpdates } from '../types';
 import { filterSemverLevel } from './utils';
 import * as core from '@actions/core';
 import { glob } from 'glob';
@@ -7,34 +7,34 @@ import { glob } from 'glob';
 
 
 interface IParams {
-  packageFile: string;
+  packageFilename: string;
   ignore?: string[];
 }
 
-type TGetUpdates = (cwd: string) => IUpdate[];
+type TGetUpdates = (cwd: string) => IModuleUpdate[];
 
 class DepChecker {
-  packageFile: string;
+  packageFilename: string;
   ignore?: string[];
   getUpdates: TGetUpdates;
 
   constructor(parameters: IParams, getUpdates: TGetUpdates) {
-    this.packageFile = parameters.packageFile;
+    this.packageFilename = parameters.packageFilename;
     this.ignore = parameters.ignore;
     this.getUpdates = getUpdates;
   }
 
 
-  getAvailableUpdates(): IUpdates[] {
-    const configs = glob.sync(`**/${this.packageFile}`, { ignore: this.ignore });
-    const updates: IUpdates[] = [];
-    for (const configFile of configs) {
-      core.info(`Scanning ${configFile} ...`);
-      const location = path.dirname(configFile);
+  getAvailableUpdates(): IPackageUpdates[] {
+    const configs = glob.sync(`**/${this.packageFilename}`, { ignore: this.ignore });
+    const updates: IPackageUpdates[] = [];
+    for (const packagePath of configs) {
+      core.info(`Scanning ${packagePath} ...`);
+      const location = path.dirname(packagePath);
       const update = this.getUpdates(location);
       const modules = update.filter(state => filterSemverLevel(state));
       if (update.length) {
-        updates.push({ configFile, modules });
+        updates.push({ packagePath, modules });
       }
     }
     return updates;

@@ -6,13 +6,13 @@ export enum SemverLevels {
 
 export type TSemverLevel = keyof typeof SemverLevels
 
-export interface IUpdate {
+export interface IModuleUpdate {
   name: string;
   wanted: string;
   latest: string;
 }
 
-export interface IUpdates {
-  configFile: string,
-  modules: IUpdate[]
+export interface IPackageUpdates {
+  packagePath: string,
+  modules: IModuleUpdate[]
 }
