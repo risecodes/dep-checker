@@ -1,24 +1,27 @@
-import * as core from '@actions/core'
+import { PACKAGE_FILE } from './const';
 
-
-jest.spyOn(core, 'getInput').mockImplementation((name: string) => {
-  switch (name) {
-  case 'level': return 'major';
-  default: return 'something';
-  }
+jest.mock('@actions/core', () => {
+  const original = jest.requireActual('@actions/core');
+  return {
+    ...original,
+    error: jest.fn(),
+    warning: jest.fn(),
+    info: jest.fn(),
+    debug: jest.fn()
+  };
 });
 
+jest.mock('glob', () => {
+  const original = jest.requireActual('glob');
+  return {
+    ...original,
+    glob: {
+      ...original.glob,
+      sync: jest.fn(() => [PACKAGE_FILE])
+    }
+  };
+});
 
 process.env.GITHUB_REPOSITORY = 'fake-owner/fake-repo';
 process.env.GITHUB_REF_NAME = 'test';
-
-// import * as s3json from '../src/utils/s3json';
-
-// import rules from '../src/modules/filtration/test/mock/rules.json';
-// import { IRules } from '../src/modules/filtration/types';
-
-// jest.spyOn(s3json, 'initRules').mockImplementation(async () => {
-//   return;
-// })
-
-// jest.spyOn(s3json, 'getRules').mockImplementation(() => rules as IRules);
+process.env.INPUT_LEVEL = 'patch';
