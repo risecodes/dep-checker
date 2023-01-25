@@ -20,7 +20,7 @@ interface INPMModule {
   location?: string
 }
 
-const getUpdates = (cwd: string): IModuleUpdate[] => {
+export const getUpdates = (cwd: string): IModuleUpdate[] => {
 
   const { stdout, stderr, error } = spawnSync('npm', CMD_ARGS, { cwd, encoding: 'utf8' });
   if (error) throw error;

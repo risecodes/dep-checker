@@ -32,7 +32,7 @@ interface IGoModule {
 }
 
 
-const getUpdates = (cwd: string): IModuleUpdate[] => {
+export const getUpdates = (cwd: string): IModuleUpdate[] => {
   const { stdout, error, stderr } = spawnSync('go', CMD_ARGS, { cwd, encoding: 'utf8' });
   if (error) throw error;
   if (stderr) throw new Error(stderr);
