@@ -1,4 +1,5 @@
 import { getUpdates } from '../go';
+import { CWD } from './const';
 
 const fakeModule = {
   Path: 'fake-module',
@@ -42,8 +43,6 @@ jest.mock('node:child_process', () => {
     }))
   };
 });
-
-const CWD = '.';
 
 describe('GoChecker', () => {
   describe('getUpdates', () => {

@@ -61903,6 +61903,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getUpdates = void 0;
 const node_child_process_1 = __nccwpck_require__(7718);
 const core = __importStar(__nccwpck_require__(2186));
 const config_1 = __nccwpck_require__(6373);
@@ -61933,10 +61934,11 @@ const getUpdates = (cwd) => {
         latest: Update === null || Update === void 0 ? void 0 : Update.Version
     }));
 };
+exports.getUpdates = getUpdates;
 const GoChecker = new _1.default({
-    packageFile: GO_MOD,
+    packageFilename: GO_MOD,
     ignore: config_1.IGNORE
-}, getUpdates);
+}, exports.getUpdates);
 exports["default"] = GoChecker;
 
 
@@ -61980,20 +61982,20 @@ const core = __importStar(__nccwpck_require__(2186));
 const glob_1 = __nccwpck_require__(1957);
 class DepChecker {
     constructor(parameters, getUpdates) {
-        this.packageFile = parameters.packageFile;
+        this.packageFilename = parameters.packageFilename;
         this.ignore = parameters.ignore;
         this.getUpdates = getUpdates;
     }
     getAvailableUpdates() {
-        const configs = glob_1.glob.sync(`**/${this.packageFile}`, { ignore: this.ignore });
+        const configs = glob_1.glob.sync(`**/${this.packageFilename}`, { ignore: this.ignore });
         const updates = [];
-        for (const configFile of configs) {
-            core.info(`Scanning ${configFile} ...`);
-            const location = node_path_1.default.dirname(configFile);
+        for (const packagePath of configs) {
+            core.info(`Scanning ${packagePath} ...`);
+            const location = node_path_1.default.dirname(packagePath);
             const update = this.getUpdates(location);
             const modules = update.filter(state => (0, utils_1.filterSemverLevel)(state));
             if (update.length) {
-                updates.push({ configFile, modules });
+                updates.push({ packagePath, modules });
             }
         }
         return updates;
@@ -62013,6 +62015,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getUpdates = void 0;
 const node_child_process_1 = __nccwpck_require__(7718);
 const config_1 = __nccwpck_require__(6373);
 const _1 = __importDefault(__nccwpck_require__(4334));
@@ -62037,10 +62040,11 @@ const getUpdates = (cwd) => {
         latest: state.latest
     }));
 };
+exports.getUpdates = getUpdates;
 const NPMChecker = new _1.default({
-    packageFile: PACKAGE_JSON,
+    packageFilename: PACKAGE_JSON,
     ignore: IGNORE_FOLDERS
-}, getUpdates);
+}, exports.getUpdates);
 exports["default"] = NPMChecker;
 
 
@@ -62147,8 +62151,8 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(2186));
 const jira_1 = __nccwpck_require__(5147);
 const config_1 = __nccwpck_require__(6373);
-const getGithubLink = (configFile) => {
-    return `https://github.com/${config_1.GITHUB_REPOSITORY}/blob/${config_1.GITHUB_REF_NAME}/${configFile}`;
+const getGithubLink = (packagePath) => {
+    return `https://github.com/${config_1.GITHUB_REPOSITORY}/blob/${config_1.GITHUB_REF_NAME}/${packagePath}`;
 };
 const getModuleDescription = (modules) => {
     return modules.map(({ name, wanted, latest }) => {
@@ -62156,10 +62160,10 @@ const getModuleDescription = (modules) => {
     }).join('\n');
 };
 const getReportDescription = (updates) => {
-    return updates.map(({ configFile, modules }) => {
-        const link = getGithubLink(configFile);
+    return updates.map(({ packagePath, modules }) => {
+        const link = getGithubLink(packagePath);
         const list = getModuleDescription(modules);
-        return `{{${configFile}}} ([link|${link}])\n${list}`;
+        return `{{${packagePath}}} ([link|${link}])\n${list}`;
     }).join('\n\n');
 };
 const sendReport = async (updates) => {

@@ -1,4 +1,5 @@
 import { getUpdates } from '../npm';
+import { CWD } from './const';
 
 const fakeModuleName = 'fake-module';
 
@@ -21,8 +22,6 @@ jest.mock('node:child_process', () => {
     }))
   };
 });
-
-const CWD = '.';
 
 describe('NPMChecker', () => {
   describe('getUpdates', () => {
