@@ -23,8 +23,17 @@ jobs:
         ENVIRONMENT: ${{ github.ref_name != 'main' && 'staging' || 'production' }}
     - name: Build
       run: npm i && npm run build
-    - uses: stefanzweifel/git-auto-commit-action@v4
-      with:
-        commit_message: Bumping ${{ steps.version.outputs.repo_tag }}
-        file_pattern: dist/*
-        tagging_message: ${{ steps.version.outputs.repo_tag }}
+    - name: Push Tag
+      run: |
+        VERSION=v1.0.3-rc
+        echo "Version: $VERSION"
+        if [[ $(git status --porcelain) ]]; then
+          git add .
+          git config user.name "GitHub Actions"
+          git config user.email github-actions@github.com
+          git commit -am "Bumping $VERSION"
+          echo Added commit: '"'Bumping $VERSION'"'
+        fi
+        set -x
+        git tag $VERSION
+        git push -f origin $GITHUB_REF_NAME $VERSION
