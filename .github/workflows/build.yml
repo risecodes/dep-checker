@@ -25,7 +25,7 @@ jobs:
       run: npm i && npm run build
     - name: Push Tag
       run: |
-        VERSION=v1.0.3-rc
+        VERSION=${{ steps.version.outputs.repo_tag }}
         echo "Version: $VERSION"
         if [[ $(git status --porcelain) ]]; then
           git add .
