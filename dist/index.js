@@ -61846,7 +61846,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.GITHUB_REF_NAME = exports.GITHUB_REPOSITORY = exports.IGNORE = exports.LEVEL = exports.JIRA_ISSUE_TYPE = exports.JIRA_PROJECT = exports.JIRA_TOKEN = exports.JIRA_USER = exports.JIRA_HOST = void 0;
+exports.GITHUB_REF_NAME = exports.GITHUB_REPOSITORY = exports.IGNORE = exports.LEVEL = exports.JIRA_EPIC_ID = exports.JIRA_ISSUE_TYPE = exports.JIRA_PROJECT = exports.JIRA_TOKEN = exports.JIRA_USER = exports.JIRA_HOST = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const types_1 = __nccwpck_require__(5077);
 exports.JIRA_HOST = core.getInput('jira_host');
@@ -61854,6 +61854,7 @@ exports.JIRA_USER = core.getInput('jira_user');
 exports.JIRA_TOKEN = core.getInput('jira_token');
 exports.JIRA_PROJECT = core.getInput('jira_project');
 exports.JIRA_ISSUE_TYPE = core.getInput('jira_issue_type');
+exports.JIRA_EPIC_ID = core.getInput('jira_epic_id');
 exports.LEVEL = core.getInput('level');
 exports.IGNORE = core.getMultilineInput('ignore');
 exports.GITHUB_REPOSITORY = process.env.GITHUB_REPOSITORY;
@@ -62024,7 +62025,6 @@ const CMD_ARGS = ['outdated', '--json'];
 const IGNORE_FOLDERS = [
     ...config_1.IGNORE,
     '**/node_modules/**',
-    '.github/actions/dep-checker'
 ];
 const getUpdates = (cwd) => {
     const { stdout, stderr, error } = (0, node_child_process_1.spawnSync)('npm', CMD_ARGS, { cwd, encoding: 'utf8' });
@@ -62219,19 +62219,22 @@ const findIssue = async () => {
     and issuetype = ${config_1.JIRA_ISSUE_TYPE}
     and summary ~ "${TICKET_SUMMARY}"
   `;
-    const result = await jira.searchJira(jql, { fields: ['description'] });
-    return (_a = result === null || result === void 0 ? void 0 : result.issues) === null || _a === void 0 ? void 0 : _a[0];
+    const result = await jira.searchJira(jql, { fields: ['description', 'summary'] });
+    // Jira doesn't support exact matching on `summary` field, so do the match here
+    const issue = (_a = result === null || result === void 0 ? void 0 : result.issues) === null || _a === void 0 ? void 0 : _a.find((result) => result.fields.summary === TICKET_SUMMARY);
+    return issue;
 };
 exports.findIssue = findIssue;
 const createIssue = (description) => {
-    return jira.addNewIssue({
-        fields: {
-            summary: TICKET_SUMMARY,
-            description,
-            project: { key: config_1.JIRA_PROJECT },
-            issuetype: { name: config_1.JIRA_ISSUE_TYPE }
-        }
-    });
+    const fields = {
+        summary: TICKET_SUMMARY,
+        description,
+        project: { key: config_1.JIRA_PROJECT },
+        issuetype: { name: config_1.JIRA_ISSUE_TYPE }
+    };
+    if (config_1.JIRA_EPIC_ID)
+        fields.parent = { key: config_1.JIRA_EPIC_ID };
+    return jira.addNewIssue({ fields });
 };
 exports.createIssue = createIssue;
 const updateIssue = (issueId, description) => {
