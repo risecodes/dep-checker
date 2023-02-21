@@ -9,7 +9,6 @@ const CMD_ARGS = ['outdated', '--json'];
 const IGNORE_FOLDERS = [
   ...IGNORE,
   '**/node_modules/**',
-  '.github/actions/dep-checker'
 ];
 
 interface INPMModule {

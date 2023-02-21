@@ -6,6 +6,7 @@ export const JIRA_USER = core.getInput('jira_user');
 export const JIRA_TOKEN = core.getInput('jira_token');
 export const JIRA_PROJECT = core.getInput('jira_project');
 export const JIRA_ISSUE_TYPE = core.getInput('jira_issue_type');
+export const JIRA_EPIC_ID = core.getInput('jira_epic_id');
 
 export const LEVEL = core.getInput('level') as TSemverLevel;
 export const IGNORE = core.getMultilineInput('ignore');

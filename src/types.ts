@@ -16,3 +16,18 @@ export interface IPackageUpdates {
   packagePath: string,
   modules: IModuleUpdate[]
 }
+
+export interface IJiraTicketFields {
+  summary: string;
+  description: string;
+  project: { key: string };
+  issuetype: { name: string };
+  parent?: { key: string };
+}
+
+export interface IJiraTicket {
+  id: string;
+  self: string;
+  key: string;
+  fields: IJiraTicketFields;
+}

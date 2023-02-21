@@ -16,6 +16,9 @@ inputs:
   jira_issue_type:
     description: Jira ticket type
     required: true
+  jira_epic_id:
+    description: Jira epic id
+    required: true
   level:
     description: SemVer level to check for (major|minor|patch)
     default: major
