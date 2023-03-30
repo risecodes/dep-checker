@@ -1,35 +1,24 @@
 name: Dep Checker
 
 on:
+  workflow_dispatch:
   schedule:
-  - cron: '0 0 * * 0' # Every Sunday at 00:00
+  - cron: '0 0 * * *' # Every day at 00:00
 
-env:
-  DEP_CHECKER_VERSION: v1.0.0
-
-# Inspired by
-# https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-using-an-action-inside-a-different-private-repository-than-the-workflow
 jobs:
-  Deps-Checker:
+  Dep-Checker:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
       uses: actions/checkout@v3
     - name: Checkout dep-checker
-      uses: actions/checkout@v3
+      uses: online-applications/dep-checker@v1.0.5
       with:
-        repository: online-applications/dep-checker
-        ref: ${{ env.DEP_CHECKER_VERSION }}
-        token: ${{ secrets.access_token_github }}
-        path: ./.github/actions/dep-checker
-    - name: Check updates
-      uses: ./.github/actions/dep-checker
-      with:
-        level: major
         jira_host: risecodes.atlassian.net
         jira_user: search-service-user@risecodes.com
         jira_token: ${{ secrets.jira_service_user_token }}
         jira_project: RIS
         jira_issue_type: Story
+        jira_epic_id: DGDT-1232
         ignore: |
-          .github/**
+          public/**
