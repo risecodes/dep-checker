@@ -62106,10 +62106,18 @@ const npm_1 = __importDefault(__nccwpck_require__(4240));
 const go_1 = __importDefault(__nccwpck_require__(6787));
 const report_1 = __importDefault(__nccwpck_require__(9895));
 const main = async () => {
-    const updates = [npm_1.default, go_1.default].map(checker => checker.getAvailableUpdates());
-    const allModules = updates.filter(u => u.length).flat();
-    core.info(JSON.stringify(allModules, null, 2));
-    await (0, report_1.default)(allModules);
+    const updates = [npm_1.default, go_1.default]
+        .map(checker => checker.getAvailableUpdates())
+        .flat()
+        .filter(({ modules }) => modules.length);
+    if (updates.length) {
+        core.info('Found updates:');
+        core.info(JSON.stringify(updates, null, 2));
+        await (0, report_1.default)(updates);
+    }
+    else {
+        core.info('Everything is up-do-date');
+    }
 };
 main()
     .catch(error => {
