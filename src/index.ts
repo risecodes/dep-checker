@@ -5,10 +5,18 @@ import sendReport from './report';
 
 
 const main = async () => {
-  const updates = [NPMChecker, GoChecker].map(checker => checker.getAvailableUpdates());
-  const allModules = updates.filter(u => u.length).flat();
-  core.info(JSON.stringify(allModules, null, 2));
-  await sendReport(allModules);
+  const updates = [NPMChecker, GoChecker]
+    .map(checker => checker.getAvailableUpdates())
+    .flat()
+    .filter(({ modules }) => modules.length);
+
+  if (updates.length) {
+    core.info('Found updates:');
+    core.info(JSON.stringify(updates, null, 2));
+    await sendReport(updates);
+  } else {
+    core.info('Everything is up-do-date');
+  }
 };
 
 main()
