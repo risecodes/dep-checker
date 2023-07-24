@@ -33,7 +33,7 @@ class DepChecker {
       const location = path.dirname(packagePath);
       const update = this.getUpdates(location);
       const modules = update.filter(state => filterSemverLevel(state));
-      if (update.length) {
+      if (modules.length) {
         updates.push({ packagePath, modules });
       }
     }
