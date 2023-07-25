@@ -1,10 +1,15 @@
+import { writeFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
+import * as core from '@actions/core';
 import { IGNORE } from '../config';
 import { IModuleUpdate } from '../types';
 import DepChecker from '.';
 
 const PACKAGE_JSON = 'package.json';
-const CMD_ARGS = ['outdated', '--json'];
+const NPM_CONFIG_USERCONFIG = '/tmp/dep-checker.npmrc';
+const UTF8 = 'utf-8';
+
+const NPMRC = core.getInput('npmrc');
 
 const IGNORE_FOLDERS = [
   ...IGNORE,
@@ -19,9 +24,19 @@ interface INPMModule {
   location?: string
 }
 
+const setup = () => {
+  if (!NPMRC) return;
+  writeFileSync(NPM_CONFIG_USERCONFIG, NPMRC);
+};
+
 export const getUpdates = (cwd: string): IModuleUpdate[] => {
 
-  const { stdout, stderr, error } = spawnSync('npm', CMD_ARGS, { cwd, encoding: 'utf8' });
+  setup();
+
+  const npmArgs = ['outdated', '--json'];
+  if (NPMRC) npmArgs.push('--userconfig', NPM_CONFIG_USERCONFIG);
+
+  const { stdout, stderr, error } = spawnSync('npm', npmArgs, { cwd, encoding: UTF8 });
   if (error) throw error;
   if (stderr) throw new Error(stderr);
 
