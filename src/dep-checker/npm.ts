@@ -37,7 +37,8 @@ export const getUpdates = (cwd: string): IModuleUpdate[] => {
 
 const NPMChecker = new DepChecker({
   packageFilename: PACKAGE_JSON,
-  ignore: IGNORE_FOLDERS
-}, getUpdates);
+  ignore: IGNORE_FOLDERS,
+  getUpdates
+});
 
 export default NPMChecker;

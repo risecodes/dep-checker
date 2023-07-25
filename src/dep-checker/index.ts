@@ -9,6 +9,7 @@ import { glob } from 'glob';
 interface IParams {
   packageFilename: string;
   ignore?: string[];
+  getUpdates: TGetUpdates;
 }
 
 type TGetUpdates = (cwd: string) => IModuleUpdate[];
@@ -18,10 +19,10 @@ class DepChecker {
   ignore?: string[];
   getUpdates: TGetUpdates;
 
-  constructor(parameters: IParams, getUpdates: TGetUpdates) {
-    this.packageFilename = parameters.packageFilename;
-    this.ignore = parameters.ignore;
-    this.getUpdates = getUpdates;
+  constructor(params: IParams) {
+    this.packageFilename = params.packageFilename;
+    this.ignore = params.ignore;
+    this.getUpdates = params.getUpdates;
   }
 
 

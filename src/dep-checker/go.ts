@@ -56,8 +56,9 @@ export const getUpdates = (cwd: string): IModuleUpdate[] => {
 
 const GoChecker = new DepChecker({
   packageFilename: GO_MOD,
-  ignore: IGNORE
-}, getUpdates);
+  ignore: IGNORE,
+  getUpdates
+});
 
 
 export default GoChecker;
