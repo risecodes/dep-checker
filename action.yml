@@ -24,7 +24,6 @@ inputs:
     default: major
   ignore:
     description: Multiline string of paths to be ignored from check
-    default: .github/**
   npmrc:
     description: String which will be used as npm config file (.npmrc)
 runs:
