@@ -1,11 +1,11 @@
 import * as core from '@actions/core';
-import NPMChecker from './dep-checker/npm';
-import GoChecker from './dep-checker/go';
 import sendReport from './report';
+
+import packageSystems from './package-systems';
 
 
 const main = async () => {
-  const updates = [NPMChecker, GoChecker]
+  const updates = packageSystems
     .map(checker => checker.getAvailableUpdates())
     .flat()
     .filter(({ modules }) => modules.length);

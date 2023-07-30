@@ -2,7 +2,7 @@ import { spawnSync } from 'node:child_process';
 import * as core from '@actions/core';
 import { IModuleUpdate } from '../types';
 import { IGNORE } from '../config';
-import DepChecker from '.';
+import DepChecker from '../dep-checker';
 
 const GO_MOD = 'go.mod';
 const CMD_ARGS = ['list', '-u', '-m', '-e', '-json', 'all'];

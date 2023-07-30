@@ -9,5 +9,3 @@ export const fakeModules = {
   minor: { name: 'updateMinor', wanted: '1.0.0', latest: '1.1.0' },
   major: { name: 'updateMajor', wanted: '1.0.0', latest: '2.0.0' },
 };
-
-export const CWD = 'fake-cwd';

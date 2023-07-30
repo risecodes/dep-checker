@@ -3,7 +3,7 @@ import { spawnSync } from 'node:child_process';
 import * as core from '@actions/core';
 import { IGNORE } from '../config';
 import { IModuleUpdate } from '../types';
-import DepChecker from '.';
+import DepChecker from '../dep-checker';
 
 const PACKAGE_JSON = 'package.json';
 const NPM_CONFIG_USERCONFIG = '/tmp/dep-checker.npmrc';
