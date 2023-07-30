@@ -5,34 +5,51 @@ Check dependencies, then create a Jira ticket
 ## Usage
 Copy `github-action-example.yml` into your repo `.github/workflows/` folder.
 
-Optionally change the schedule event
+Set the desired schedule time
 ```yaml
 on:
   schedule:
   - cron: '0 0 * * 0' # Every Sunday at 00:00
 ```
 
-And that's it!  
+Set all the action parameters
+```yaml
+# Required parameters
+jira_host: your-domain.atlassian.net # Jira site domain
+jira_user: example@your-domain.com # Jira user email
+jira_token: ${{ secrets.jira_token }} # Jira service token
+jira_project: PRJ # Project name
+jira_issue_type: Story # One of Story, Bug etc.
+jira_epic_id: EPC-123 # Epic ID
 
-`dep-checker` will keep you'r repo dependencies up-to-date, by creating a Jira ticket whenever a MAJOR update is available.
+# Optional parameters
+level: major # Semver level to consider as an update. Value maybe one of major|minor|patch, default: "major"
+npmrc: "@private-scope:registry=https://private.registry.com/" # Special config for npm package system, default: ""
+ignore: | # Folders to ignore, default: ""
+  public/**
+  vendor/**
+```
 
-## Special Action Envs
-| Name | Description | Default |
-| --- | --- | --- |
-| `GITHUB_REPOSITORY` | Internal GH Action env | `${owner}/${repository}` |
-| `GITHUB_REF_NAME` | Branch name for to link in issue | `staging` |
-| `JIRA_USER` | User email used to login | `search-service-user@risecodes.com` |
-| `JIRA_TOKEN` | User token | - |
-| `JIRA_PROJECT` | Project to create tickets | `RIS` |
-| `JIRA_ISSUE_TYPE` | Ticket type | `Story` |
-| `DEP_CHECKER_IGNORE` | Folders to be ignored | `null` |
-| `DEP_CHECKER_VERSION` | `dep-checker` version | `main` |
+`dep-checker` will help you keep you'r dependencies up-to-date, by creating a Jira ticket whenever an update is available.
+
+## Supported package systems
+
+- **npm** - `package.json`
+- **golang** - `go.mod`
 
 ## Development
 
-`cd` to a folder where there is a `package.json` file
+`cd` to a folder which contains package management file, like `package.json`/`go.mod`
 
 Then run
-```bash
-GITHUB_REPOSITORY=<online-applications/repo> JIRA_TOKEN=<token> npx ts-node <path/to/dep-checker/src>
+```sh
+GITHUB_REPOSITORY=<github-org/github-repo> \
+INPUT_JIRA_HOST=<jira_host> \
+INPUT_JIRA_USER=<jira_user> \
+INPUT_JIRA_TOKEN=<jira_token> \
+INPUT_JIRA_PROJECT=<jira_project> \
+INPUT_JIRA_ISSUE_TYPE=<jira_issue_type> \
+INPUT_JIRA_EPIC_ID=<jira_epic_id> \
+INPUT_LEVEL=<level> \
+npx ts-node <path/to/dep-checker/src>
 ```

@@ -14,11 +14,13 @@ jobs:
     - name: Checkout dep-checker
       uses: online-applications/dep-checker@v1.0.5
       with:
-        jira_host: risecodes.atlassian.net
-        jira_user: search-service-user@risecodes.com
-        jira_token: ${{ secrets.jira_service_user_token }}
-        jira_project: RIS
+        jira_host: your-domain.atlassian.net
+        jira_user: example@your-domain.com
+        jira_token: ${{ secrets.jira_token }}
+        jira_project: PRJ
         jira_issue_type: Story
-        jira_epic_id: DGDT-1232
+        jira_epic_id: EPC-123
+        level: major
+        npmrc: "@private-scope:registry=https://private.registry.com/"
         ignore: |
           public/**
