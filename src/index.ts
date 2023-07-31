@@ -7,8 +7,7 @@ import packageSystems from './package-systems';
 const main = async () => {
   const updates = packageSystems
     .map(checker => checker.getAvailableUpdates())
-    .flat()
-    .filter(({ modules }) => modules.length);
+    .flat();
 
   if (updates.length) {
     core.info('Found updates:');
