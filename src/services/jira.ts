@@ -9,31 +9,26 @@ import {
   GITHUB_REPOSITORY,
 } from '../config';
 import {
-  IJiraCreateRequest,
+  IJiraCreateParams,
   IJiraCreateResponse,
-  IJiraSearchRequest,
+  IJiraIssue,
+  IJiraSearchParams,
   IJiraSearchResponse,
-  IJiraUpdateInput
+  IJiraUpdateParams
 } from './types';
 
 const TICKET_SUMMARY = `Deps: ${GITHUB_REPOSITORY}`;
 
-const jiraRequest = async <D, R = unknown>(pathname: string, data: D) => {
-  const resp = await axios<R>({
-    method: 'POST',
-    baseURL: `https://${JIRA_HOST}/rest/api/2`,
-    url: pathname,
-    auth: {
-      username: JIRA_USER,
-      password: JIRA_TOKEN,
-    },
-    data: data
-  });
-  return resp.data;
-};
+const jiraClient = axios.create({
+  baseURL: `https://${JIRA_HOST}/rest/api/2`,
+  auth: {
+    username: JIRA_USER,
+    password: JIRA_TOKEN,
+  },
+});
 
-export const findIssue = async () => {
-  const searchParams = {
+export const findIssue = async (): Promise<IJiraIssue | undefined> => {
+  const searchParams: IJiraSearchParams = {
     fields: ['description', 'summary'],
     jql: `
       reporter = "${JIRA_USER}"
@@ -44,16 +39,20 @@ export const findIssue = async () => {
     `,
   };
 
-  const result = await jiraRequest<IJiraSearchRequest, IJiraSearchResponse>('/search', searchParams);
+  const { data } = await jiraClient<IJiraSearchResponse>({
+    method: 'POST',
+    url: '/search',
+    data: searchParams,
+  });
 
   // Jira doesn't support exact matching on `summary` field, so do the match here
   // TODO: find a better way to manage issue by a very uniq id per project
-  const issue = result.issues?.find((result) => result.fields.summary === TICKET_SUMMARY);
+  const issue = data.issues?.find((result) => result.fields.summary === TICKET_SUMMARY);
   return issue;
 };
 
-export const createIssue = (description: string) => {
-  const issue: IJiraCreateRequest = {
+export const createIssue = async (description: string): Promise<IJiraCreateResponse> => {
+  const issue: IJiraCreateParams = {
     summary: TICKET_SUMMARY,
     description,
     project: { key: JIRA_PROJECT },
@@ -62,9 +61,22 @@ export const createIssue = (description: string) => {
 
   if (JIRA_EPIC_ID) issue.parent = { key: JIRA_EPIC_ID };
 
-  return jiraRequest<IJiraCreateRequest, IJiraCreateResponse>('/issue', issue);
+  const { data } = await jiraClient<IJiraCreateResponse>({
+    method: 'POST',
+    url: '/issue',
+    data: issue
+  });
+  return data;
 };
 
 export const updateIssue = (issueId: string, description: string) => {
-  return jiraRequest<IJiraUpdateInput>(`/issue/${issueId}`, { fields: { description } });
+  const updateParams: IJiraUpdateParams = {
+    fields: { description }
+  };
+
+  return jiraClient({
+    method: 'PUT',
+    url: `/issue/${issueId}`,
+    data: updateParams
+  });
 };

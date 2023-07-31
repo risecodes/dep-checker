@@ -12,7 +12,15 @@ interface IJiraFields {
   worklog: unknown;
 }
 
-export interface IJiraSearchRequest {
+export interface IJiraIssue {
+  expand: string;
+  id: string;
+  self: string;
+  key: string;
+  fields: Partial<IJiraFields>
+}
+
+export interface IJiraSearchParams {
   jql: string;
   startAt?: number;
   maxResults?: number;
@@ -25,16 +33,10 @@ export interface IJiraSearchResponse {
   startAt: number;
   maxResults: number;
   total: number;
-  issues: [{
-    expand: string;
-    id: string;
-    self: string;
-    key: string;
-    fields: Partial<IJiraFields>
-  }]
+  issues: IJiraIssue[]
 }
 
-export interface IJiraCreateRequest {
+export interface IJiraCreateParams {
   summary: string;
   description: string;
   project: { key: string };
@@ -53,7 +55,7 @@ export interface IJiraCreateResponse {
 }
 
 
-export interface IJiraUpdateInput {
+export interface IJiraUpdateParams {
   fields: Partial<IJiraFields>
 }
 
