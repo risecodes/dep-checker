@@ -53,13 +53,15 @@ export const findIssue = async (): Promise<IJiraIssue | undefined> => {
 
 export const createIssue = async (description: string): Promise<IJiraCreateResponse> => {
   const issue: IJiraCreateParams = {
-    summary: TICKET_SUMMARY,
-    description,
-    project: { key: JIRA_PROJECT },
-    issuetype: { name: JIRA_ISSUE_TYPE }
+    fields: {
+      summary: TICKET_SUMMARY,
+      description,
+      project: { key: JIRA_PROJECT },
+      issuetype: { name: JIRA_ISSUE_TYPE }
+    }
   };
 
-  if (JIRA_EPIC_ID) issue.parent = { key: JIRA_EPIC_ID };
+  if (JIRA_EPIC_ID) issue.fields.parent = { key: JIRA_EPIC_ID };
 
   const { data } = await jiraClient<IJiraCreateResponse>({
     method: 'POST',

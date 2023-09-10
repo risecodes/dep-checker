@@ -37,11 +37,13 @@ export interface IJiraSearchResponse {
 }
 
 export interface IJiraCreateParams {
-  summary: string;
-  description: string;
-  project: { key: string };
-  issuetype: { name: string };
-  parent?: { key: string };
+  fields: {
+    summary: string;
+    description: string;
+    project: { key: string };
+    issuetype: { name: string };
+    parent?: { key: string };
+  }
 }
 
 export interface IJiraCreateResponse {

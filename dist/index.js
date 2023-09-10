@@ -13090,23 +13090,17 @@ const findIssue = async () => {
     return issue;
 };
 exports.findIssue = findIssue;
-const getProjectId = async (projectKey) => {
-    const { data } = await jiraClient({
-        method: 'GET',
-        url: `/project/${projectKey}`
-    });
-    return data.id;
-};
 const createIssue = async (description) => {
-    const projectId = await getProjectId(config_1.JIRA_PROJECT);
     const issue = {
-        summary: TICKET_SUMMARY,
-        description,
-        project: { id: projectId },
-        issuetype: { name: config_1.JIRA_ISSUE_TYPE }
+        fields: {
+            summary: TICKET_SUMMARY,
+            description,
+            project: { key: config_1.JIRA_PROJECT },
+            issuetype: { name: config_1.JIRA_ISSUE_TYPE }
+        }
     };
     if (config_1.JIRA_EPIC_ID)
-        issue.parent = { key: config_1.JIRA_EPIC_ID };
+        issue.fields.parent = { key: config_1.JIRA_EPIC_ID };
     const { data } = await jiraClient({
         method: 'POST',
         url: '/issue',
