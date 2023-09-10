@@ -12775,9 +12775,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+const axios_1 = __nccwpck_require__(8757);
 const core = __importStar(__nccwpck_require__(2186));
 const report_1 = __importDefault(__nccwpck_require__(9895));
 const package_systems_1 = __importDefault(__nccwpck_require__(5658));
+const utils_1 = __nccwpck_require__(1314);
 const main = async () => {
     const updates = package_systems_1.default
         .map(checker => checker.getAvailableUpdates())
@@ -12793,6 +12795,8 @@ const main = async () => {
 };
 main()
     .catch(error => {
+    if (error instanceof axios_1.AxiosError)
+        (0, utils_1.printAxiosError)(error);
     core.setFailed(error.stack);
 });
 
@@ -13086,11 +13090,19 @@ const findIssue = async () => {
     return issue;
 };
 exports.findIssue = findIssue;
+const getProjectId = async (projectKey) => {
+    const { data } = await jiraClient({
+        method: 'GET',
+        url: `/project/${projectKey}`
+    });
+    return data.id;
+};
 const createIssue = async (description) => {
+    const projectId = await getProjectId(config_1.JIRA_PROJECT);
     const issue = {
         summary: TICKET_SUMMARY,
         description,
-        project: { key: config_1.JIRA_PROJECT },
+        project: { id: projectId },
         issuetype: { name: config_1.JIRA_ISSUE_TYPE }
     };
     if (config_1.JIRA_EPIC_ID)
@@ -13131,6 +13143,49 @@ var SemverLevels;
     SemverLevels[SemverLevels["minor"] = 1] = "minor";
     SemverLevels[SemverLevels["major"] = 2] = "major";
 })(SemverLevels = exports.SemverLevels || (exports.SemverLevels = {}));
+
+
+/***/ }),
+
+/***/ 1314:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.printAxiosError = void 0;
+const core = __importStar(__nccwpck_require__(2186));
+const printAxiosError = (error) => {
+    var _a, _b;
+    const { method, url, baseURL, data } = ((_a = error.response) === null || _a === void 0 ? void 0 : _a.config) || {};
+    const responseData = (_b = error.response) === null || _b === void 0 ? void 0 : _b.data;
+    const errorObj = { url: `${baseURL}/${url}`, method, requestData: data, responseData };
+    core.warning(JSON.stringify(errorObj, null, 2));
+};
+exports.printAxiosError = printAxiosError;
 
 
 /***/ }),

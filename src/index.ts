@@ -1,7 +1,9 @@
+import { AxiosError } from 'axios';
 import * as core from '@actions/core';
-import sendReport from './report';
 
+import sendReport from './report';
 import packageSystems from './package-systems';
+import { printAxiosError } from './utils';
 
 
 const main = async () => {
@@ -20,5 +22,6 @@ const main = async () => {
 
 main()
   .catch(error => {
+    if (error instanceof AxiosError) printAxiosError(error);
     core.setFailed(error.stack);
   });
