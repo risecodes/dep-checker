@@ -12,7 +12,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
     - name: Checkout dep-checker
-      uses: online-applications/dep-checker@v1.0.5
+      uses: online-applications/dep-checker@v1
       with:
         jira_host: your-domain.atlassian.net
         jira_user: example@your-domain.com

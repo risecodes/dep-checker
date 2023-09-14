@@ -39,7 +39,7 @@ ignore: | # Folders to ignore, default: ""
 
 ## Development
 
-`cd` to a folder which contains package management file, like `package.json`/`go.mod`
+`cd` to a folder which contains package management file, like `package.json` / `go.mod`
 
 Then run
 ```sh
@@ -52,4 +52,50 @@ INPUT_JIRA_ISSUE_TYPE=<jira_issue_type> \
 INPUT_JIRA_EPIC_ID=<jira_epic_id> \
 INPUT_LEVEL=<level> \
 npx ts-node <path/to/dep-checker/src>
+```
+
+## Deployment
+
+### CI/CD
+There is no any CI/CD in the project, as the build version, which is created on every commit (via `precommit` hook) is included in git
+
+### Versioning
+Projects using dep-checker refer a specific version by it's git tag.  
+For example
+```yaml
+online-applications/dep-checker@v1.0.8 # Refers to version v1.0.8
+```
+
+We also support a `latest` tag by putting just the major version.  
+For example
+```yaml
+online-applications/dep-checker@v1 # Refers to the latest v1.x version
+```
+
+So, each time you increase a minor/patch version, the major git tag should be overriden to refer the latest version
+
+> Note:  
+> There is no any auto update for those tags, so you MUST update/create the git tag by yourself
+
+### Git Tag
+Befoer push to `master` branch, create a new tag for your version
+```bash
+git tag <new version>
+
+# Example:
+git tag v1.0.8
+```
+
+Override the major tag
+```bash
+git tag -f <major>
+
+# Example:
+git tag -f v1
+```
+
+Push your new tags along with commits
+```bash
+git push
+git push --tags
 ```
