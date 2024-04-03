@@ -12704,13 +12704,13 @@ class DepChecker {
         this.ignore = params.ignore;
         this.getUpdates = params.getUpdates;
     }
-    getAvailableUpdates() {
+    async getAvailableUpdates() {
         const configs = glob_1.glob.sync(`**/${this.packageFilename}`, { ignore: this.ignore });
         const updates = [];
         for (const packagePath of configs) {
             core.info(`Scanning ${packagePath} ...`);
             const location = node_path_1.default.dirname(packagePath);
-            const update = this.getUpdates(location);
+            const update = await this.getUpdates(location);
             const modules = update.filter(state => (0, utils_1.filterSemverLevel)(state));
             if (modules.length) {
                 updates.push({ packagePath, modules });
@@ -12781,9 +12781,8 @@ const report_1 = __importDefault(__nccwpck_require__(9895));
 const package_systems_1 = __importDefault(__nccwpck_require__(5658));
 const utils_1 = __nccwpck_require__(1314);
 const main = async () => {
-    const updates = package_systems_1.default
-        .map(checker => checker.getAvailableUpdates())
-        .flat();
+    const updatesPromises = package_systems_1.default.map(checker => checker.getAvailableUpdates());
+    const updates = await Promise.all(updatesPromises).then(updates => updates.flat());
     if (updates.length) {
         core.info('Found updates:');
         core.info(JSON.stringify(updates, null, 2));
@@ -12836,16 +12835,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getUpdates = void 0;
-const node_child_process_1 = __nccwpck_require__(7718);
 const core = __importStar(__nccwpck_require__(2186));
 const config_1 = __nccwpck_require__(6373);
 const dep_checker_1 = __importDefault(__nccwpck_require__(4334));
+const utils_1 = __nccwpck_require__(1314);
 const GO_MOD = 'go.mod';
 const CMD_ARGS = ['list', '-u', '-m', '-e', '-json', 'all'];
-const getUpdates = (cwd) => {
-    const { stdout, error, stderr } = (0, node_child_process_1.spawnSync)('go', CMD_ARGS, { cwd, encoding: 'utf8' });
-    if (error)
-        throw error;
+const getUpdates = async (cwd) => {
+    const { stdout, stderr } = await (0, utils_1.execFilePromise)('go', CMD_ARGS, { cwd, encoding: 'utf8' });
     if (stderr)
         throw new Error(stderr);
     return stdout.trim()
@@ -12931,40 +12928,49 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getUpdates = void 0;
 const node_fs_1 = __nccwpck_require__(7561);
-const node_child_process_1 = __nccwpck_require__(7718);
+const node_path_1 = __importDefault(__nccwpck_require__(9411));
 const core = __importStar(__nccwpck_require__(2186));
+const semver_1 = __importDefault(__nccwpck_require__(1383));
 const config_1 = __nccwpck_require__(6373);
 const dep_checker_1 = __importDefault(__nccwpck_require__(4334));
+const utils_1 = __nccwpck_require__(1314);
 const PACKAGE_JSON = 'package.json';
 const NPM_CONFIG_USERCONFIG = '/tmp/dep-checker.npmrc';
 const UTF8 = 'utf-8';
-const NPMRC = core.getInput('npmrc');
+const NPM_ARGS = ['info', '--json', '--userconfig', NPM_CONFIG_USERCONFIG];
 const IGNORE_FOLDERS = [
     ...config_1.IGNORE,
     '**/node_modules/**',
 ];
-const setup = () => {
-    if (!NPMRC)
-        return;
-    (0, node_fs_1.writeFileSync)(NPM_CONFIG_USERCONFIG, NPMRC);
-};
-const getUpdates = (cwd) => {
-    setup();
-    const npmArgs = ['outdated', '--json'];
-    if (NPMRC)
-        npmArgs.push('--userconfig', NPM_CONFIG_USERCONFIG);
-    const { stdout, stderr, error } = (0, node_child_process_1.spawnSync)('npm', npmArgs, { cwd, encoding: UTF8 });
-    if (error)
-        throw error;
+const NPMRC = core.getInput('npmrc');
+(0, node_fs_1.writeFileSync)(NPM_CONFIG_USERCONFIG, NPMRC);
+const getPackageInfo = async (dep) => {
+    const { stdout, stderr } = await (0, utils_1.execFilePromise)('npm', [...NPM_ARGS, dep.name], { encoding: UTF8 });
     if (stderr)
         throw new Error(stderr);
-    const modules = JSON.parse(stdout);
-    return Object.entries(modules)
-        .map(([name, state]) => ({
-        name,
-        wanted: state.wanted,
-        latest: state.latest
-    }));
+    const output = JSON.parse(stdout);
+    return {
+        name: dep.name,
+        wanted: dep.version,
+        latest: output.version,
+    };
+};
+const getUpdates = async (cwd) => {
+    const packageJsonPath = node_path_1.default.join(node_path_1.default.resolve(cwd), PACKAGE_JSON);
+    const { dependencies, devDependencies, peerDependencies } = JSON.parse((0, node_fs_1.readFileSync)(packageJsonPath, { encoding: UTF8 }));
+    const depsObj = { ...dependencies, ...devDependencies, ...peerDependencies };
+    const depsArray = Object.entries(depsObj).map(([key, value]) => {
+        var _a;
+        return ({
+            name: key,
+            version: ((_a = semver_1.default.minVersion(value)) === null || _a === void 0 ? void 0 : _a.version) || value,
+        });
+    }).sort((a, b) => {
+        return a.name.localeCompare(b.name);
+    });
+    const depsInfo = await Promise.all(depsArray.map(dep => getPackageInfo(dep)));
+    const outdated = depsInfo.filter(({ wanted, latest }) => semver_1.default.compare(wanted, latest) < 0);
+    return outdated;
 };
 exports.getUpdates = getUpdates;
 const NPMChecker = new dep_checker_1.default({
@@ -13169,8 +13175,13 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.printAxiosError = void 0;
+exports.execFilePromise = exports.printAxiosError = void 0;
+const node_util_1 = __importDefault(__nccwpck_require__(7261));
+const node_child_process_1 = __nccwpck_require__(7718);
 const core = __importStar(__nccwpck_require__(2186));
 const printAxiosError = (error) => {
     var _a, _b;
@@ -13180,6 +13191,7 @@ const printAxiosError = (error) => {
     core.warning(JSON.stringify(errorObj, null, 2));
 };
 exports.printAxiosError = printAxiosError;
+exports.execFilePromise = node_util_1.default.promisify(node_child_process_1.execFile);
 
 
 /***/ }),
@@ -13261,6 +13273,14 @@ module.exports = require("node:fs");
 
 "use strict";
 module.exports = require("node:path");
+
+/***/ }),
+
+/***/ 7261:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("node:util");
 
 /***/ }),
 

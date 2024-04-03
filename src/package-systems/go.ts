@@ -1,8 +1,9 @@
-import { spawnSync } from 'node:child_process';
 import * as core from '@actions/core';
 import { IModuleUpdate } from '../types';
 import { IGNORE } from '../config';
 import DepChecker from '../dep-checker';
+import { execFilePromise } from '../utils';
+
 
 const GO_MOD = 'go.mod';
 const CMD_ARGS = ['list', '-u', '-m', '-e', '-json', 'all'];
@@ -32,9 +33,8 @@ interface IGoModule {
 }
 
 
-export const getUpdates = (cwd: string): IModuleUpdate[] => {
-  const { stdout, error, stderr } = spawnSync('go', CMD_ARGS, { cwd, encoding: 'utf8' });
-  if (error) throw error;
+export const getUpdates = async (cwd: string): Promise<IModuleUpdate[]> => {
+  const { stdout, stderr } = await execFilePromise('go', CMD_ARGS, { cwd, encoding: 'utf8' });
   if (stderr) throw new Error(stderr);
 
   return stdout.trim()

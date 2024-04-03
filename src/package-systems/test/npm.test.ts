@@ -2,36 +2,43 @@ import { getUpdates } from '../../package-systems/npm';
 import { CWD } from './const';
 
 const fakeModuleName = 'fake-module';
+const wanted = '1.0.0';
+const latest = '2.0.0';
 
-const fakeModules = {
-  [fakeModuleName]: {
-    current: '1.0.0',
-    wanted: '1.0.0',
-    latest: '2.0.0',
-    dependent: 'dep-checker',
-    location: '/Users/user/dep-checker'
+const fakePkgJson = {
+  dependencies: {
+    [fakeModuleName]: wanted
   }
 };
 
 jest.mock('node:child_process', () => {
   return {
-    spawnSync: jest.fn(() => ({
-      stdout: JSON.stringify(fakeModules, null, 2),
-      stderr: '',
-      error: null
-    }))
+    execFile: jest.fn((...args) => {
+      const callback = args.pop();
+      callback(null, {
+        stdout: JSON.stringify({ version: latest }, null, 2),
+        stderr: '',
+      });
+    })
+  };
+});
+
+jest.mock('node:fs', () => {
+  return {
+    readFileSync: jest.fn(() => JSON.stringify(fakePkgJson)),
+    writeFileSync: jest.fn(),
   };
 });
 
 describe('NPMChecker', () => {
   describe('getUpdates', () => {
-    it('Returns modules list', () => {
-      const modules = getUpdates(CWD);
+    it('Returns modules list', async () => {
+      const modules = await getUpdates(CWD);
       expect(modules).toHaveLength(1);
       expect(modules[0]).toEqual({
         name: fakeModuleName,
-        wanted: fakeModules[fakeModuleName].wanted,
-        latest: fakeModules[fakeModuleName].latest,
+        wanted: wanted,
+        latest: latest,
       });
     });
   });

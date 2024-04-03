@@ -36,18 +36,20 @@ const cmdOutput = [
 
 jest.mock('node:child_process', () => {
   return {
-    spawnSync: jest.fn(() => ({
-      stdout: cmdOutput,
-      stderr: '',
-      error: null
-    }))
+    execFile: jest.fn((...args) => {
+      const callback = args.pop();
+      callback(null, {
+        stdout: cmdOutput,
+        stderr: '',
+      });
+    })
   };
 });
 
 describe('GoChecker', () => {
   describe('getUpdates', () => {
-    it('Returns modules list', () => {
-      const modules = getUpdates(CWD);
+    it('Returns modules list', async () => {
+      const modules = await getUpdates(CWD);
       expect(modules).toHaveLength(1);
       expect(modules[0]).toEqual({
         name: fakeModule.Path,
