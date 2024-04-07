@@ -12,7 +12,7 @@ interface IParams {
   getUpdates: TGetUpdates;
 }
 
-type TGetUpdates = (cwd: string) => IModuleUpdate[];
+type TGetUpdates = (cwd: string) => Promise<IModuleUpdate[]>;
 
 class DepChecker {
   packageFilename: string;
@@ -26,13 +26,13 @@ class DepChecker {
   }
 
 
-  getAvailableUpdates(): IPackageUpdates[] {
+  async getAvailableUpdates(): Promise<IPackageUpdates[]> {
     const configs = glob.sync(`**/${this.packageFilename}`, { ignore: this.ignore });
     const updates: IPackageUpdates[] = [];
     for (const packagePath of configs) {
       core.info(`Scanning ${packagePath} ...`);
       const location = path.dirname(packagePath);
-      const update = this.getUpdates(location);
+      const update = await this.getUpdates(location);
       const modules = update.filter(state => filterSemverLevel(state));
       if (modules.length) {
         updates.push({ packagePath, modules });

@@ -1,53 +1,66 @@
-import { writeFileSync } from 'node:fs';
-import { spawnSync } from 'node:child_process';
+import { writeFileSync, readFileSync } from 'node:fs';
+import path from 'node:path';
 import * as core from '@actions/core';
+import semver from 'semver';
 import { IGNORE } from '../config';
 import { IModuleUpdate } from '../types';
 import DepChecker from '../dep-checker';
+import { execFilePromise } from '../utils';
+
 
 const PACKAGE_JSON = 'package.json';
 const NPM_CONFIG_USERCONFIG = '/tmp/dep-checker.npmrc';
 const UTF8 = 'utf-8';
-
-const NPMRC = core.getInput('npmrc');
+const NPM_ARGS = ['info', '--json', '--userconfig', NPM_CONFIG_USERCONFIG];
 
 const IGNORE_FOLDERS = [
   ...IGNORE,
   '**/node_modules/**',
 ];
 
-interface INPMModule {
-  current?: string,
-  wanted: string,
-  latest: string,
-  dependent: string,
-  location?: string
+const NPMRC = core.getInput('npmrc');
+
+interface NPMModule {
+  name: string;
+  version: string;
 }
 
-const setup = () => {
-  if (!NPMRC) return;
-  writeFileSync(NPM_CONFIG_USERCONFIG, NPMRC);
-};
+writeFileSync(NPM_CONFIG_USERCONFIG, NPMRC);
 
-export const getUpdates = (cwd: string): IModuleUpdate[] => {
-
-  setup();
-
-  const npmArgs = ['outdated', '--json'];
-  if (NPMRC) npmArgs.push('--userconfig', NPM_CONFIG_USERCONFIG);
-
-  const { stdout, stderr, error } = spawnSync('npm', npmArgs, { cwd, encoding: UTF8 });
-  if (error) throw error;
+const getPackageInfo = async (dep: NPMModule) => {
+  const { stdout, stderr } = await execFilePromise('npm', [...NPM_ARGS, dep.name], { encoding: UTF8 });
   if (stderr) throw new Error(stderr);
 
-  const modules = JSON.parse(stdout) as INPMModule[];
+  const output = JSON.parse(stdout);
+  return {
+    name: dep.name,
+    wanted: dep.version,
+    latest: output.version,
+  };
+};
 
-  return Object.entries(modules)
-    .map(([name, state]) => ({
-      name,
-      wanted: state.wanted,
-      latest: state.latest
-    }));
+export const getUpdates = async (cwd: string): Promise<IModuleUpdate[]> => {
+
+  const packageJsonPath = path.join(path.resolve(cwd), PACKAGE_JSON);
+
+  const {
+    dependencies,
+    devDependencies,
+    peerDependencies
+  } = JSON.parse(readFileSync(packageJsonPath, { encoding: UTF8 }));
+
+  const depsObj = { ...dependencies, ...devDependencies, ...peerDependencies } as Record<string, string>;
+
+  const depsArray = Object.entries(depsObj).map(([key, value]) => ({
+    name: key,
+    version: semver.minVersion(value)?.version || value,
+  })).sort((a, b) => {
+    return a.name.localeCompare(b.name);
+  });
+
+  const depsInfo = await Promise.all(depsArray.map(dep => getPackageInfo(dep)));
+  const outdated = depsInfo.filter(({ wanted, latest }) => semver.compare(wanted, latest) < 0);
+  return outdated;
 };
 
 const NPMChecker = new DepChecker({
