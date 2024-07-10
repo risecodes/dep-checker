@@ -49,12 +49,14 @@ export const getUpdates = async (cwd: string): Promise<IModuleUpdate[]> => {
 
   const depsObj = { ...dependencies, ...devDependencies, ...peerDependencies } as Record<string, string>;
 
-  const depsArray = Object.entries(depsObj).map(([key, value]) => ({
-    name: key,
-    version: semver.minVersion(value)?.version || value,
-  })).sort((a, b) => {
-    return a.name.localeCompare(b.name);
-  });
+  const depsArray = Object.entries(depsObj)
+    .filter(([_key, value]) => semver.valid(value))
+    .map(([key, value]) => ({
+      name: key,
+      version: semver.minVersion(value)?.version || value,
+    })).sort((a, b) => {
+      return a.name.localeCompare(b.name);
+    });
 
   const depsInfo = await Promise.all(depsArray.map(dep => getPackageInfo(dep)));
   const outdated = depsInfo.filter(({ wanted, latest }) => semver.compare(wanted, latest) < 0);

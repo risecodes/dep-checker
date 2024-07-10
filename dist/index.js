@@ -12347,7 +12347,9 @@ const getUpdates = async (cwd) => {
     const packageJsonPath = node_path_1.default.join(node_path_1.default.resolve(cwd), PACKAGE_JSON);
     const { dependencies, devDependencies, peerDependencies, } = JSON.parse((0, node_fs_1.readFileSync)(packageJsonPath, { encoding: UTF8 }));
     const depsObj = { ...dependencies, ...devDependencies, ...peerDependencies };
-    const depsArray = Object.entries(depsObj).map(([key, value]) => {
+    const depsArray = Object.entries(depsObj)
+        .filter(([_key, value]) => semver_1.default.valid(value))
+        .map(([key, value]) => {
         var _a;
         return ({
             name: key,
