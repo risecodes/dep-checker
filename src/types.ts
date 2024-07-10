@@ -4,7 +4,7 @@ export enum SemverLevels {
   major,
 }
 
-export type TSemverLevel = keyof typeof SemverLevels
+export type TSemverLevel = keyof typeof SemverLevels;
 
 export interface IModuleUpdate {
   name: string;
@@ -13,6 +13,6 @@ export interface IModuleUpdate {
 }
 
 export interface IPackageUpdates {
-  packagePath: string,
-  modules: IModuleUpdate[]
+  packagePath: string;
+  modules: IModuleUpdate[];
 }

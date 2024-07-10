@@ -1,6 +1,5 @@
 import { fakeModules, MAJOR, MINOR, PATCH } from './const';
 
-
 const reloadUtil = async (level: string) => {
   process.env.INPUT_LEVEL = level;
   return (await import('../utils'));

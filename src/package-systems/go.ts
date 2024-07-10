@@ -4,7 +4,6 @@ import { IGNORE } from '../config';
 import DepChecker from '../dep-checker';
 import { execFilePromise } from '../utils';
 
-
 const GO_MOD = 'go.mod';
 const CMD_ARGS = ['list', '-u', '-m', '-e', '-json', 'all'];
 
@@ -29,9 +28,8 @@ interface IGoModule {
   };
   Error?: {
     Err: string;
-  }
+  };
 }
-
 
 export const getUpdates = async (cwd: string): Promise<IModuleUpdate[]> => {
   const { stdout, stderr } = await execFilePromise('go', CMD_ARGS, { cwd, encoding: 'utf8' });
@@ -39,7 +37,7 @@ export const getUpdates = async (cwd: string): Promise<IModuleUpdate[]> => {
 
   return stdout.trim()
     .split(/\n(?=\{)/) // Split list of objects
-    .map(obj => {
+    .map((obj) => {
       const module = JSON.parse(obj) as IGoModule;
       if (module.Error) core.warning(module.Error.Err);
       return module;
@@ -50,15 +48,14 @@ export const getUpdates = async (cwd: string): Promise<IModuleUpdate[]> => {
     .map(({ Path, Version, Update }) => ({
       name: Path,
       wanted: Version,
-      latest: Update?.Version
+      latest: Update?.Version,
     }));
 };
 
 const GoChecker = new DepChecker({
   packageFilename: GO_MOD,
   ignore: IGNORE,
-  getUpdates
+  getUpdates,
 });
-
 
 export default GoChecker;

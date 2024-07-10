@@ -14,7 +14,7 @@ import {
   IJiraIssue,
   IJiraSearchParams,
   IJiraSearchResponse,
-  IJiraUpdateParams
+  IJiraUpdateParams,
 } from './types';
 
 const TICKET_SUMMARY = `Deps: ${GITHUB_REPOSITORY}`;
@@ -47,7 +47,7 @@ export const findIssue = async (): Promise<IJiraIssue | undefined> => {
 
   // Jira doesn't support exact matching on `summary` field, so do the match here
   // TODO: find a better way to manage issue by a very uniq id per project
-  const issue = data.issues?.find((result) => result.fields.summary === TICKET_SUMMARY);
+  const issue = data.issues?.find(result => result.fields.summary === TICKET_SUMMARY);
   return issue;
 };
 
@@ -57,8 +57,8 @@ export const createIssue = async (description: string): Promise<IJiraCreateRespo
       summary: TICKET_SUMMARY,
       description,
       project: { key: JIRA_PROJECT },
-      issuetype: { name: JIRA_ISSUE_TYPE }
-    }
+      issuetype: { name: JIRA_ISSUE_TYPE },
+    },
   };
 
   if (JIRA_EPIC_ID) issue.fields.parent = { key: JIRA_EPIC_ID };
@@ -66,19 +66,19 @@ export const createIssue = async (description: string): Promise<IJiraCreateRespo
   const { data } = await jiraClient<IJiraCreateResponse>({
     method: 'POST',
     url: '/issue',
-    data: issue
+    data: issue,
   });
   return data;
 };
 
 export const updateIssue = (issueId: string, description: string) => {
   const updateParams: IJiraUpdateParams = {
-    fields: { description }
+    fields: { description },
   };
 
   return jiraClient({
     method: 'PUT',
     url: `/issue/${issueId}`,
-    data: updateParams
+    data: updateParams,
   });
 };

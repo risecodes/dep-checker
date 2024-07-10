@@ -7,8 +7,8 @@ const latest = '2.0.0';
 
 const fakePkgJson = {
   dependencies: {
-    [fakeModuleName]: wanted
-  }
+    [fakeModuleName]: wanted,
+  },
 };
 
 jest.mock('node:child_process', () => {
@@ -19,7 +19,7 @@ jest.mock('node:child_process', () => {
         stdout: JSON.stringify({ version: latest }, null, 2),
         stderr: '',
       });
-    })
+    }),
   };
 });
 

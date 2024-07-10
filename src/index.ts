@@ -5,7 +5,6 @@ import sendReport from './report';
 import packageSystems from './package-systems';
 import { printAxiosError } from './utils';
 
-
 const main = async () => {
   const updatesPromises = packageSystems.map(checker => checker.getAvailableUpdates());
   const updates = await Promise.all(updatesPromises).then(updates => updates.flat());
@@ -20,7 +19,7 @@ const main = async () => {
 };
 
 main()
-  .catch(error => {
+  .catch((error) => {
     if (error instanceof AxiosError) printAxiosError(error);
     core.setFailed(error.stack);
   });

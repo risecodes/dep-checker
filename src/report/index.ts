@@ -3,7 +3,6 @@ import { findIssue, createIssue, updateIssue } from '../services/jira';
 import { GITHUB_REF_NAME, GITHUB_REPOSITORY } from '../config';
 import { IModuleUpdate, IPackageUpdates } from '../types';
 
-
 const getGithubLink = (packagePath: string) => {
   return `https://github.com/${GITHUB_REPOSITORY}/blob/${GITHUB_REF_NAME}/${packagePath}`;
 };

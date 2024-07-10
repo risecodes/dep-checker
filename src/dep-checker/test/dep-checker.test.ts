@@ -9,7 +9,7 @@ const reloadChecker = async (level: string) => {
   const DepChecker = (await import('..')).default;
   return new DepChecker({
     packageFilename: PACKAGE_FILE,
-    getUpdates: mockGetUpdates
+    getUpdates: mockGetUpdates,
   });
 };
 

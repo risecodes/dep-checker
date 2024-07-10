@@ -17,7 +17,7 @@ export interface IJiraIssue {
   id: string;
   self: string;
   key: string;
-  fields: Partial<IJiraFields>
+  fields: Partial<IJiraFields>;
 }
 
 export interface IJiraSearchParams {
@@ -33,7 +33,7 @@ export interface IJiraSearchResponse {
   startAt: number;
   maxResults: number;
   total: number;
-  issues: IJiraIssue[]
+  issues: IJiraIssue[];
 }
 
 export interface IJiraCreateParams {
@@ -43,7 +43,7 @@ export interface IJiraCreateParams {
     project: { key: string };
     issuetype: { name: string };
     parent?: { key: string };
-  }
+  };
 }
 
 export interface IJiraCreateResponse {
@@ -53,11 +53,9 @@ export interface IJiraCreateResponse {
   transition: {
     status: number;
     errorCollection: unknown;
-  }
+  };
 }
-
 
 export interface IJiraUpdateParams {
-  fields: Partial<IJiraFields>
+  fields: Partial<IJiraFields>;
 }
-

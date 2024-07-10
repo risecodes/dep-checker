@@ -4,8 +4,6 @@ import { filterSemverLevel } from './utils';
 import * as core from '@actions/core';
 import { glob } from 'glob';
 
-
-
 interface IParams {
   packageFilename: string;
   ignore?: string[];
@@ -25,7 +23,6 @@ class DepChecker {
     this.getUpdates = params.getUpdates;
   }
 
-
   async getAvailableUpdates(): Promise<IPackageUpdates[]> {
     const configs = glob.sync(`**/${this.packageFilename}`, { ignore: this.ignore });
     const updates: IPackageUpdates[] = [];
@@ -40,7 +37,6 @@ class DepChecker {
     }
     return updates;
   }
-
 }
 
 export default DepChecker;

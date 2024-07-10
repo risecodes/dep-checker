@@ -7,7 +7,6 @@ import { IModuleUpdate } from '../types';
 import DepChecker from '../dep-checker';
 import { execFilePromise } from '../utils';
 
-
 const PACKAGE_JSON = 'package.json';
 const NPM_CONFIG_USERCONFIG = '/tmp/dep-checker.npmrc';
 const UTF8 = 'utf-8';
@@ -40,13 +39,12 @@ const getPackageInfo = async (dep: NPMModule) => {
 };
 
 export const getUpdates = async (cwd: string): Promise<IModuleUpdate[]> => {
-
   const packageJsonPath = path.join(path.resolve(cwd), PACKAGE_JSON);
 
   const {
     dependencies,
     devDependencies,
-    peerDependencies
+    peerDependencies,
   } = JSON.parse(readFileSync(packageJsonPath, { encoding: UTF8 }));
 
   const depsObj = { ...dependencies, ...devDependencies, ...peerDependencies } as Record<string, string>;
@@ -66,7 +64,7 @@ export const getUpdates = async (cwd: string): Promise<IModuleUpdate[]> => {
 const NPMChecker = new DepChecker({
   packageFilename: PACKAGE_JSON,
   ignore: IGNORE_FOLDERS,
-  getUpdates
+  getUpdates,
 });
 
 export default NPMChecker;
