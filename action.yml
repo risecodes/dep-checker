@@ -26,6 +26,8 @@ inputs:
     description: Multiline string of paths to be ignored from check
   npmrc:
     description: String which will be used as npm config file (.npmrc)
+  netrc:
+    description: String which will be used as .netrc config file
 runs:
   using: 'node16'
   main: 'dist/index.js'

@@ -1,3 +1,5 @@
+import { writeFileSync } from 'node:fs';
+import { homedir } from 'node:os';
 import * as core from '@actions/core';
 import { IModuleUpdate } from '../types';
 import { IGNORE } from '../config';
@@ -6,6 +8,7 @@ import { execFilePromise } from '../utils';
 
 const GO_MOD = 'go.mod';
 const CMD_ARGS = ['list', '-u', '-m', '-e', '-json', 'all'];
+const NETRC_PATH = `${homedir()}/.netrc`;
 
 interface IGoModule {
   Path: string;
@@ -30,6 +33,9 @@ interface IGoModule {
     Err: string;
   };
 }
+
+const NETRC_CONFIG = core.getInput('netrc');
+writeFileSync(NETRC_PATH, NETRC_CONFIG);
 
 export const getUpdates = async (cwd: string): Promise<IModuleUpdate[]> => {
   const { stdout, stderr } = await execFilePromise('go', CMD_ARGS, { cwd, encoding: 'utf8' });

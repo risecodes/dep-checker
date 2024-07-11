@@ -21,6 +21,12 @@ jobs:
         jira_issue_type: Story
         jira_epic_id: EPC-123
         level: major
-        npmrc: "@private-scope:registry=https://private.registry.com/"
+        npmrc: |
+          //npm.pkg.github.com/:_authToken=${{ secrets.access_token_github }}
+          @private-scope:registry=https://private.registry.com/
+        netrc: |
+          machine github.com
+          login ${{ secrets.access_token_github }}
+          password x-oauth-basic
         ignore: |
           public/**

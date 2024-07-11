@@ -12223,12 +12223,17 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getUpdates = void 0;
+const node_fs_1 = __nccwpck_require__(7561);
+const node_os_1 = __nccwpck_require__(612);
 const core = __importStar(__nccwpck_require__(2186));
 const config_1 = __nccwpck_require__(6373);
 const dep_checker_1 = __importDefault(__nccwpck_require__(4334));
 const utils_1 = __nccwpck_require__(1314);
 const GO_MOD = 'go.mod';
 const CMD_ARGS = ['list', '-u', '-m', '-e', '-json', 'all'];
+const NETRC_PATH = `${(0, node_os_1.homedir)()}/.netrc`;
+const NETRC_CONFIG = core.getInput('netrc');
+(0, node_fs_1.writeFileSync)(NETRC_PATH, NETRC_CONFIG);
 const getUpdates = async (cwd) => {
     const { stdout, stderr } = await (0, utils_1.execFilePromise)('go', CMD_ARGS, { cwd, encoding: 'utf8' });
     if (stderr)
@@ -12655,6 +12660,14 @@ module.exports = require("node:child_process");
 
 "use strict";
 module.exports = require("node:fs");
+
+/***/ }),
+
+/***/ 612:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("node:os");
 
 /***/ }),
 
