@@ -7,18 +7,13 @@ jest.mock('@actions/core', () => {
     error: jest.fn(),
     warning: jest.fn(),
     info: jest.fn(),
-    debug: jest.fn()
+    debug: jest.fn(),
   };
 });
 
 jest.mock('glob', () => {
-  const original = jest.requireActual('glob');
   return {
-    ...original,
-    glob: {
-      ...original.glob,
-      sync: jest.fn(() => [PACKAGE_FILE])
-    }
+    glob: jest.fn().mockResolvedValue([PACKAGE_FILE]),
   };
 });
 

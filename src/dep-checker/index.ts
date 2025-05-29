@@ -24,7 +24,7 @@ class DepChecker {
   }
 
   async getAvailableUpdates(): Promise<IPackageUpdates[]> {
-    const configs = glob.sync(`**/${this.packageFilename}`, { ignore: this.ignore });
+    const configs = await glob(`**/${this.packageFilename}`, { ignore: this.ignore });
     const updates: IPackageUpdates[] = [];
     for (const packagePath of configs) {
       core.info(`Scanning ${packagePath} ...`);
