@@ -8,7 +8,7 @@ import { printAxiosError } from './utils';
 const main = async () => {
   const updatesPromises = packageSystems.map(checker => checker.getAvailableUpdates());
   const updates = await Promise.all(updatesPromises).then(updates => updates.flat());
-
+  console.log({ updates });
   if (updates.length) {
     core.info('Found updates:');
     core.info(JSON.stringify(updates, null, 2));

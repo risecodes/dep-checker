@@ -27,10 +27,13 @@ interface NPMModule {
 writeFileSync(NPM_CONFIG_USERCONFIG, NPMRC);
 
 const getPackageInfo = async (dep: NPMModule) => {
+  console.log('Running command: ', 'npm', [...NPM_ARGS, dep.name]);
   const { stdout, stderr } = await execFilePromise('npm', [...NPM_ARGS, dep.name], { encoding: UTF8 });
+  console.log({ stderr });
   if (stderr) throw new Error(stderr);
 
   const output = JSON.parse(stdout);
+  console.log({ output });
   return {
     name: dep.name,
     wanted: dep.version,
@@ -60,6 +63,7 @@ export const getUpdates = async (cwd: string): Promise<IModuleUpdate[]> => {
 
   const depsInfo = await Promise.all(depsArray.map(dep => getPackageInfo(dep)));
   const outdated = depsInfo.filter(({ wanted, latest }) => semver.compare(wanted, latest) < 0);
+  console.log({ outdated });
   return outdated;
 };
 

@@ -9928,6 +9928,7 @@ const utils_1 = __nccwpck_require__(1314);
 const main = async () => {
     const updatesPromises = package_systems_1.default.map(checker => checker.getAvailableUpdates());
     const updates = await Promise.all(updatesPromises).then(updates => updates.flat());
+    console.log({ updates });
     if (updates.length) {
         core.info('Found updates:');
         core.info(JSON.stringify(updates, null, 2));
@@ -10115,10 +10116,13 @@ const IGNORE_FOLDERS = [
 const NPMRC = core.getInput('npmrc');
 (0, node_fs_1.writeFileSync)(NPM_CONFIG_USERCONFIG, NPMRC);
 const getPackageInfo = async (dep) => {
+    console.log('Running command: ', 'npm', [...NPM_ARGS, dep.name]);
     const { stdout, stderr } = await (0, utils_1.execFilePromise)('npm', [...NPM_ARGS, dep.name], { encoding: UTF8 });
+    console.log({ stderr });
     if (stderr)
         throw new Error(stderr);
     const output = JSON.parse(stdout);
+    console.log({ output });
     return {
         name: dep.name,
         wanted: dep.version,
@@ -10142,6 +10146,7 @@ const getUpdates = async (cwd) => {
     });
     const depsInfo = await Promise.all(depsArray.map(dep => getPackageInfo(dep)));
     const outdated = depsInfo.filter(({ wanted, latest }) => semver_1.default.compare(wanted, latest) < 0);
+    console.log({ outdated });
     return outdated;
 };
 exports.getUpdates = getUpdates;
