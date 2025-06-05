@@ -1,5 +1,8 @@
 name: 'Dep Checker'
 description: 'Check dependencies to update, create a Jira ticket'
+branding:
+  icon: 'activity'
+  color: 'purple'
 inputs:
   jira_host:
     description: Jira hostname
