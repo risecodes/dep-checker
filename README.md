@@ -55,7 +55,7 @@ Grant access to private package registry via `npmrc` parameter
 
 #### Golang
 1. Grant access via `netrc` parameter ([docs](https://go.dev/ref/mod#private-module-proxy-auth))
-1. Set `GOPRIVATE` env variable to a comma-separated list of glob patterns ([docs](https://go.dev/ref/mod#:~:text=user%27s%20home%20directory.-,GOPRIVATE,-Comma%2Dseparated%20list))
+2. Set `GOPRIVATE` env variable to a comma-separated list of glob patterns ([docs](https://go.dev/ref/mod#:~:text=user%27s%20home%20directory.-,GOPRIVATE,-Comma%2Dseparated%20list))
 
 ## Development
 
@@ -63,6 +63,7 @@ Grant access to private package registry via `npmrc` parameter
 
 Then run
 ```sh
+GITHUB_REF_NAME=<github-repo-name> \
 GITHUB_REPOSITORY=<github-org/github-repo> \
 INPUT_JIRA_HOST=<jira_host> \
 INPUT_JIRA_USER=<jira_user> \

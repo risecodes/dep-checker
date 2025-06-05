@@ -1,4 +1,4 @@
-import { getUpdates } from '../../package-systems/npm';
+import { getUpdates } from '../npm';
 import { CWD } from './const';
 
 const fakeModuleName = 'fake-module';
