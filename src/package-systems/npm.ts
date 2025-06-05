@@ -27,6 +27,7 @@ interface NPMModule {
 writeFileSync(NPM_CONFIG_USERCONFIG, NPMRC);
 
 const getPackageInfo = (dep: NPMModule): Promise<IModuleUpdate> => {
+  console.log('Start scaning npm', dep);
   return execFilePromise('npm', [...NPM_ARGS, dep.name], { encoding: UTF8 })
     .then(({ stdout, stderr }) => {
       console.log({ stdout, stderr });

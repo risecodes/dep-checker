@@ -10116,6 +10116,7 @@ const IGNORE_FOLDERS = [
 const NPMRC = core.getInput('npmrc');
 (0, node_fs_1.writeFileSync)(NPM_CONFIG_USERCONFIG, NPMRC);
 const getPackageInfo = (dep) => {
+    console.log('Start scaning npm', dep);
     return (0, utils_1.execFilePromise)('npm', [...NPM_ARGS, dep.name], { encoding: UTF8 })
         .then(({ stdout, stderr }) => {
         console.log({ stdout, stderr });
