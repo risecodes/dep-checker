@@ -10115,19 +10115,19 @@ const IGNORE_FOLDERS = [
 ];
 const NPMRC = core.getInput('npmrc');
 (0, node_fs_1.writeFileSync)(NPM_CONFIG_USERCONFIG, NPMRC);
-const getPackageInfo = async (dep) => {
-    console.log('Running command: ', 'npm', [...NPM_ARGS, dep.name]);
-    const { stdout, stderr } = await (0, utils_1.execFilePromise)('npm', [...NPM_ARGS, dep.name], { encoding: UTF8 });
-    console.log({ stderr });
-    if (stderr)
-        throw new Error(stderr);
-    const output = JSON.parse(stdout);
-    console.log({ output });
-    return {
-        name: dep.name,
-        wanted: dep.version,
-        latest: output.version,
-    };
+const getPackageInfo = (dep) => {
+    return (0, utils_1.execFilePromise)('npm', [...NPM_ARGS, dep.name], { encoding: UTF8 })
+        .then(({ stdout, stderr }) => {
+        console.log({ stdout, stderr });
+        if (stderr)
+            throw new Error(stderr);
+        const output = JSON.parse(stdout);
+        return {
+            name: dep.name,
+            wanted: dep.version,
+            latest: output.version,
+        };
+    });
 };
 const getUpdates = async (cwd) => {
     const packageJsonPath = node_path_1.default.join(node_path_1.default.resolve(cwd), PACKAGE_JSON);
@@ -10146,7 +10146,6 @@ const getUpdates = async (cwd) => {
     });
     const depsInfo = await Promise.all(depsArray.map(dep => getPackageInfo(dep)));
     const outdated = depsInfo.filter(({ wanted, latest }) => semver_1.default.compare(wanted, latest) < 0);
-    console.log({ outdated });
     return outdated;
 };
 exports.getUpdates = getUpdates;
