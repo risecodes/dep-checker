@@ -1,4 +1,4 @@
-import { writeFileSync, readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import * as core from '@actions/core';
 import semver from 'semver';
@@ -27,10 +27,8 @@ interface NPMModule {
 writeFileSync(NPM_CONFIG_USERCONFIG, NPMRC);
 
 const getPackageInfo = (dep: NPMModule): Promise<IModuleUpdate> => {
-  console.log('Start scaning npm', dep);
   return execFilePromise('npm', [...NPM_ARGS, dep.name], { encoding: UTF8 })
     .then(({ stdout, stderr }) => {
-      console.log({ stdout, stderr });
       if (stderr) throw new Error(stderr);
 
       const output = JSON.parse(stdout);
@@ -54,7 +52,7 @@ export const getUpdates = async (cwd: string): Promise<IModuleUpdate[]> => {
   const depsObj = { ...dependencies, ...devDependencies, ...peerDependencies } as Record<string, string>;
 
   const depsArray = Object.entries(depsObj)
-    .filter(([_key, value]) => semver.valid(value))
+    .filter(([_key, value]) => Boolean(semver.valid(semver.coerce(value))))
     .map(([key, value]) => ({
       name: key,
       version: semver.minVersion(value)?.version || value,

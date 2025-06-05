@@ -9928,7 +9928,6 @@ const utils_1 = __nccwpck_require__(1314);
 const main = async () => {
     const updatesPromises = package_systems_1.default.map(checker => checker.getAvailableUpdates());
     const updates = await Promise.all(updatesPromises).then(updates => updates.flat());
-    console.log({ updates });
     if (updates.length) {
         core.info('Found updates:');
         core.info(JSON.stringify(updates, null, 2));
@@ -9948,93 +9947,6 @@ main()
 
 /***/ }),
 
-/***/ 7390:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getUpdates = void 0;
-const node_fs_1 = __nccwpck_require__(7561);
-const node_os_1 = __nccwpck_require__(612);
-const core = __importStar(__nccwpck_require__(2186));
-const config_1 = __nccwpck_require__(6373);
-const dep_checker_1 = __importDefault(__nccwpck_require__(4334));
-const utils_1 = __nccwpck_require__(1314);
-const GO_MOD = 'go.mod';
-const CMD_ARGS = ['list', '-u', '-m', '-e', '-json', 'all'];
-const NETRC_PATH = `${(0, node_os_1.homedir)()}/.netrc`;
-const NETRC_CONFIG = core.getInput('netrc');
-(0, node_fs_1.writeFileSync)(NETRC_PATH, NETRC_CONFIG);
-const getUpdates = async (cwd) => {
-    const { stdout, stderr } = await (0, utils_1.execFilePromise)('go', CMD_ARGS, { cwd, encoding: 'utf8' });
-    if (stderr)
-        throw new Error(stderr);
-    return stdout.trim()
-        .split(/\n(?=\{)/) // Split list of objects
-        .map((obj) => {
-        const module = JSON.parse(obj);
-        if (module.Error)
-            core.warning(module.Error.Err);
-        return module;
-    })
-        .filter((module) => {
-        var _a;
-        return !module.Indirect && !!((_a = module.Update) === null || _a === void 0 ? void 0 : _a.Version) && !!module.Version;
-    })
-        .map(({ Path, Version, Update }) => ({
-        name: Path,
-        wanted: Version,
-        latest: Update === null || Update === void 0 ? void 0 : Update.Version,
-    }));
-};
-exports.getUpdates = getUpdates;
-const GoChecker = new dep_checker_1.default({
-    packageFilename: GO_MOD,
-    ignore: config_1.IGNORE,
-    getUpdates: exports.getUpdates,
-});
-exports["default"] = GoChecker;
-
-
-/***/ }),
-
 /***/ 5658:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -10045,10 +9957,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const npm_1 = __importDefault(__nccwpck_require__(7240));
-const go_1 = __importDefault(__nccwpck_require__(7390));
 const packageSystems = [
     npm_1.default,
-    go_1.default,
+    // Go,
 ];
 exports["default"] = packageSystems;
 
@@ -10116,10 +10027,8 @@ const IGNORE_FOLDERS = [
 const NPMRC = core.getInput('npmrc');
 (0, node_fs_1.writeFileSync)(NPM_CONFIG_USERCONFIG, NPMRC);
 const getPackageInfo = (dep) => {
-    console.log('Start scaning npm', dep);
     return (0, utils_1.execFilePromise)('npm', [...NPM_ARGS, dep.name], { encoding: UTF8 })
         .then(({ stdout, stderr }) => {
-        console.log({ stdout, stderr });
         if (stderr)
             throw new Error(stderr);
         const output = JSON.parse(stdout);
@@ -10135,7 +10044,7 @@ const getUpdates = async (cwd) => {
     const { dependencies, devDependencies, peerDependencies, } = JSON.parse((0, node_fs_1.readFileSync)(packageJsonPath, { encoding: UTF8 }));
     const depsObj = { ...dependencies, ...devDependencies, ...peerDependencies };
     const depsArray = Object.entries(depsObj)
-        .filter(([_key, value]) => semver_1.default.valid(value))
+        .filter(([_key, value]) => Boolean(semver_1.default.valid(semver_1.default.coerce(value))))
         .map(([key, value]) => {
         var _a;
         return ({
@@ -10486,14 +10395,6 @@ module.exports = require("node:fs");
 
 "use strict";
 module.exports = require("node:fs/promises");
-
-/***/ }),
-
-/***/ 612:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("node:os");
 
 /***/ }),
 
